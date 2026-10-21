@@ -50,9 +50,10 @@ git push -u origin docs/<变更说明>
 ## 四、待办事项
 
 - [x] 补充 `profile/logo.png` 并在 `profile/README.md` 中引用
-- [ ] 建立 `guide` 仓库，编写体系化教程
-- [ ] 核验 Discussions 分类配置（General / Q&A / Ideas / Show and tell）
-- [ ] 为入门任务添加 `good first issue` 标签
-- [ ] 配置组织默认仓库权限
-- [ ] 启用组织级两步验证强制策略
-- [ ] 上传组织头像（GitHub 未提供该接口，需手动操作）
+- [x] 建立 `guide` 仓库，编写体系化教程
+- [x] 核验 Discussions 分类配置（Announcements / General / Ideas / Polls / Q&A / Show and tell）
+- [x] 为入门任务添加 `good first issue` 标签，并在 `guide` 仓库建立 4 项入门工单
+- [x] 配置组织默认仓库权限为 read
+- [x] 上传组织头像
+- [ ] 启用组织级两步验证强制策略（需先确认全体成员已完成配置）
+- [ ] 收敛组织所有者数量（当前 8 名成员均为所有者）
