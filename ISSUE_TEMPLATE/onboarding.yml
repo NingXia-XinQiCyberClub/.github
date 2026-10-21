@@ -1,0 +1,103 @@
+name: 🎓 新人入职
+description: 加入鑫启网安社团后的第一步，按清单逐项完成
+title: "[入职] "
+labels: ["onboarding"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 欢迎加入鑫启网安社团 👋
+
+        这张 issue 就是你的**入职清单**。按顺序做完，大约 **30 分钟**。
+        每完成一项就勾选一项，全部勾完后 maintainer 会给你开通对应仓库权限。
+
+        > 卡住了不要硬扛 —— 直接在下面回帖说明卡在哪一步，会有人帮你。
+
+  - type: input
+    id: name
+    attributes:
+      label: 你的称呼
+      description: 名字或常用昵称，我们这样称呼你
+      placeholder: 张三 / zs
+    validations:
+      required: true
+
+  - type: input
+    id: github
+    attributes:
+      label: 你的 GitHub 用户名
+      placeholder: "@your-username"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: grade
+    attributes:
+      label: 年级
+      options:
+        - 大一
+        - 大二
+        - 大三
+        - 大四
+        - 研究生
+        - 其他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: interest
+    attributes:
+      label: 最感兴趣的方向
+      multiple: true
+      options:
+        - Web 安全
+        - Pwn / 二进制
+        - Reverse 逆向
+        - Crypto 密码学
+        - Misc 杂项
+        - 内网渗透 / 红队
+        - 安全开发 / 工具
+        - 还不太确定
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 入职清单
+      description: 按顺序完成，做完一项勾一项
+      options:
+        - label: "**① 开启两步验证 (2FA)** — GitHub → Settings → Password and authentication"
+          required: true
+        - label: "**② 安装 Git** 并配置 `user.name` / `user.email`"
+          required: true
+        - label: "**③ 配置认证** — SSH key 或 `gh auth login`"
+          required: true
+        - label: "**④ 读完 [贡献指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)**"
+          required: true
+        - label: "**⑤ 成功 clone 任一社团仓库** 到本地"
+          required: true
+        - label: "**⑥ 完成第一个 PR** — 哪怕只改一个错别字"
+          required: true
+        - label: "**⑦ 在 [Discussions](https://github.com/orgs/NingXia-XinQiCyberClub/discussions) 打个招呼**"
+          required: true
+        - label: "**⑧ 加入社团群 / 例会** — 向负责人索取群二维码"
+          required: false
+
+  - type: textarea
+    id: stuck
+    attributes:
+      label: 卡在哪一步了？
+      description: 有困难就写在这里，附上报错信息
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: 承诺
+      options:
+        - label: 我已阅读并同意 [行为准则](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CODE_OF_CONDUCT.md)
+          required: true
+        - label: 我承诺**只对授权环境**进行安全测试，绝不对学校系统或他人设备做未授权测试
+          required: true

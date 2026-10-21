@@ -1,0 +1,48 @@
+name: 欢迎新人
+
+# 在任何人第一次开 issue 或 PR 时自动回一条欢迎消息。
+# 放在 org 的 .github 仓库里只会对 .github 仓库生效；
+# 想让所有仓库都有，需要把本文件复制到各仓库的 .github/workflows/ 下，
+# 或在 Actions → New workflow 里选「欢迎新人」模板。
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 首次交互欢迎
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            欢迎！这是你在本仓库的第一个 issue 🎉
+
+            为了更快得到帮助，麻烦确认一下：
+            - 是否已经搜索过现有 issue？
+            - 是否附上了**完整**的报错信息（文本，不是截图）？
+            - 是否说明了操作系统和运行时版本？
+
+            提问技巧见 [求助指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SUPPORT.md)，
+            新人入门见 [贡献指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)。
+
+            > ⚠️ 涉及安全漏洞或密钥泄露，请勿公开讨论，按
+            > [SECURITY.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SECURITY.md) 私下上报。
+
+          pr-message: |
+            感谢你的第一个 PR 🎉
+
+            维护者会在 **48 小时内** review。在等待期间，请确认：
+            - [ ] 没有提交密钥、真实 flag、内网 IP
+            - [ ] 提交信息符合规范
+            - [ ] CI 是绿的
+
+            流程说明见 [贡献指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)。

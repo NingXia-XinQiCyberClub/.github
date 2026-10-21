@@ -1,0 +1,97 @@
+name: 🐛 报告 Bug
+description: 某个功能不正常、代码报错、结果不符合预期
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！提交前请先 **搜索是否已有人提过同样的问题**。
+
+        > ⚠️ 如果涉及**密钥泄露或安全漏洞**，请不要用这个表单，改按
+        > [SECURITY.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SECURITY.md) 私下上报。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索过现有 issue，确认不是重复
+          required: true
+        - label: 我已读过 [CONTRIBUTING.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)
+          required: true
+        - label: 本问题不涉及任何安全漏洞或密钥泄露
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 问题描述
+      description: 实际发生了什么？你期望发生什么？
+      placeholder: |
+        我执行 xxx 时，出现了 yyy。
+        我期望应该是 zzz。
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 尽量给出最小可复现路径
+      placeholder: |
+        1. clone 仓库并切到 main
+        2. 执行 `python main.py`
+        3. 选择功能 2，输入端口 1111
+        4. 出现报错
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 报错信息 / 日志
+      description: "**完整粘贴文本**，不要截图，不要只贴最后一行"
+      render: shell
+      placeholder: |
+        Traceback (most recent call last):
+          File "main.py", line 12, in <module>
+            ...
+        ValueError: xxx
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: 操作系统
+      placeholder: Windows 11 / macOS 14.5 / Ubuntu 22.04
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: 语言 / 运行时版本
+      placeholder: Python 3.11.7 / Node 20.11.0 / g++ 13.2
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 仓库与分支
+      placeholder: AWD_toolkits @ main (commit a1b2c3d)
+    validations:
+      required: false
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 已尝试的解决办法
+      description: 说明你试过什么，能避免我们重复建议
+      placeholder: |
+        - 重装依赖，无效
+        - 换 Python 3.10，仍然报错
+    validations:
+      required: false

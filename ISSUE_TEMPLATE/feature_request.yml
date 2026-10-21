@@ -1,0 +1,69 @@
+name: ✨ 功能建议
+description: 提出新功能、改进点或新项目想法
+title: "[Feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先想清楚**要解决什么问题**，再想怎么实现。
+        如果只是一个模糊的想法，建议先发到 [Discussions → Ideas](https://github.com/orgs/NingXia-XinQiCyberClub/discussions/categories/ideas) 聊聊。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 你现在遇到什么不便？为什么现有的做法不够用？
+      placeholder: |
+        每次 AWD 比赛都要手动改 flag 转发地址，容易出错，
+        而且换机器就要重新配一遍。
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 你期望的方案
+      description: 你希望它怎么工作？
+      placeholder: |
+        希望支持从配置文件读取转发地址，
+        并提供 `--config` 参数指定路径。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 考虑过的替代方案
+      description: 你试过或想过别的做法吗？为什么不用？
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 影响范围
+      options:
+        - 单个仓库的小改动
+        - 单个仓库的较大改动
+        - 涉及多个仓库
+        - 全新项目
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: 你愿意参与实现吗？
+      options:
+        - label: 我愿意提 PR 实现这个功能
+        - label: 我可以帮忙测试
+        - label: 我只提想法，暂时没时间动手
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充信息
+      description: 截图、参考链接、类似项目的做法等
+    validations:
+      required: false
