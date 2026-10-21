@@ -4,55 +4,57 @@
 
 # 鑫启网安社团
 
-**XinQi Cyber Club · NingXia**
+**XinQi Cyber Club** · 宁夏大学
 
-一个专注网络安全学习与实践的学生社团：技术分享、CTF 竞赛、攻防演练、安全科普。
+面向网络安全方向的学习与实践型学生组织。业务范围涵盖技术研讨、CTF 竞赛、攻防演练与网络安全科普。
 
 </div>
 
 ---
 
-## 我们在做什么
+## 一、业务范围
 
 | 方向 | 内容 |
 | :-- | :-- |
-| **CTF 竞赛** | Web / Pwn / Reverse / Crypto / Misc，组队参加校赛、省赛、线上赛 |
-| **攻防演练** | AWD 对抗、靶场搭建、内网渗透练习 |
-| **技术分享** | 每周例会：漏洞原理、工具使用、比赛复盘 |
-| **安全科普** | 反诈宣传、校园网络安全意识普及 |
+| CTF 竞赛 | Web / Pwn / Reverse / Crypto / Misc 五个方向的训练与组队参赛，覆盖校级、省级及线上赛事 |
+| 攻防演练 | AWD 对抗演练、靶场环境搭建、内网渗透技术研究 |
+| 技术研讨 | 周期性学术例会，内容包括漏洞成因分析、工具链使用与赛事复盘 |
+| 安全科普 | 校园反诈骗宣传与网络安全意识教育 |
 
-## 新人从这里开始
+## 二、新成员指引
 
-> 第一次来？按 **① → ② → ③** 顺序走，大约 30 分钟。
+新成员应按以下顺序完成入门流程，预计耗时 30 分钟。
 
-1. **📖 读贡献指南** — [CONTRIBUTING.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)
-   包含：环境配置、分支规范、提交规范、PR 流程。
+1. **阅读贡献指南**
+   见 [CONTRIBUTING.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)，内容包括环境配置、分支规范、提交信息规范与变更请求流程。
 
-2. **✅ 开一张入职清单** — [点此创建](https://github.com/NingXia-XinQiCyberClub/.github/issues/new?template=onboarding.yml)
-   自动生成打勾清单，跟着做完就算正式入门。
+2. **提交入职登记**
+   通过[入职登记表单](https://github.com/NingXia-XinQiCyberClub/.github/issues/new?template=onboarding.yml)创建工单，系统将生成任务清单，逐项完成后即完成入门流程。
 
-3. **🎯 领一个新手任务** — 浏览 [`good first issue`](https://github.com/NingXia-XinQiCyberClub)
-   标签，完成第一个 PR（哪怕只改一个错别字）。
+3. **承接入门任务**
+   检索 `good first issue` 标签，完成首次变更请求。该标签同时会聚合至各仓库的 `/contribute` 页面。
 
-## 组织规范
+## 三、组织规范
 
-- 所有仓库遵循统一的 [行为准则](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CODE_OF_CONDUCT.md)
-- 安全漏洞请按 [SECURITY.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SECURITY.md) **私下**上报，不要开公开 issue
-- 遇到问题先看 [求助指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SUPPORT.md)
-- 提问请在 **Discussions → Q&A** 发帖，方便沉淀搜索 —— [去提问](https://github.com/NingXia-XinQiCyberClub/.github/discussions/categories/q-a)
+组织内所有仓库统一遵循以下文件：
 
-## 加入我们
+- [行为准则](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CODE_OF_CONDUCT.md)：成员行为的基本约定
+- [安全政策](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SECURITY.md)：安全缺陷的上报流程，**不得通过公开工单披露**
+- [支持渠道](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SUPPORT.md)：提问规范与响应时限
+- 技术讨论与问答统一在 [Discussions](https://github.com/NingXia-XinQiCyberClub/.github/discussions) 中进行，便于检索与知识沉淀
 
-面向宁夏大学在校学生。感兴趣的同学请联系社团负责人，或在 Discussions 里发帖自荐。
+## 四、成员招募
 
-> 我们看重的是**动手意愿**，不是已有水平。零基础也欢迎。
+招募对象为宁夏大学在校学生。有意加入者可通过 Discussions 提交申请，或直接联系组织负责人。
+
+准入标准以参与意愿与执行能力为主要依据，不设技术水平门槛。
 
 ---
 
 <div align="center">
 <sub>
 
-**鑫启网安社团** · 仅用于学习与研究。请勿将任何技术用于未经授权的目标。
+本组织所产出的技术内容仅用于教学、研究与授权环境下的安全测试。
 
 </sub>
 </div>

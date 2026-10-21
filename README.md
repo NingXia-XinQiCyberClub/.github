@@ -1,60 +1,58 @@
 # .github
 
-这是 **鑫启网安社团** 的组织级配置仓库。
-
-> 它本身不含业务代码，但决定了组织主页显示什么、以及所有仓库默认的协作规范。
+本仓库为 **鑫启网安社团** 的组织级配置仓库，不含业务代码，用于统一组织主页内容与组织内各仓库的协作规范。
 
 ---
 
-## 目录说明
+## 一、目录结构
 
 | 路径 | 作用 |
 | :-- | :-- |
-| `profile/README.md` | **组织主页** 展示的内容（`github.com/NingXia-XinQiCyberClub` 的 Overview） |
-| `profile/logo.png` | 组织图标（512×512, 透明底） |
-| `CONTRIBUTING.md` | 全组织默认贡献指南 |
+| `profile/README.md` | 组织主页 Overview 页面的展示内容 |
+| `profile/logo.png` | 组织标识（512×512，32 位 ARGB） |
+| `CONTRIBUTING.md` | 组织级默认贡献指南 |
 | `CODE_OF_CONDUCT.md` | 行为准则 |
-| `SECURITY.md` | 安全漏洞上报政策 |
-| `SUPPORT.md` | 求助指南 |
-| `PULL_REQUEST_TEMPLATE.md` | 全组织默认 PR 模板 |
-| `ISSUE_TEMPLATE/` | 全组织默认 issue 表单 |
-| `ISSUE_TEMPLATE/onboarding.yml` | 新人入职清单 |
-| `ISSUE_TEMPLATE/config.yml` | issue 入口引导（指向 Discussions） |
-| `.github/workflows/welcome.yml` | 新人首次交互自动欢迎 |
+| `SECURITY.md` | 安全缺陷上报政策 |
+| `SUPPORT.md` | 技术支持与提问规范 |
+| `PULL_REQUEST_TEMPLATE.md` | 组织级默认变更请求模板 |
+| `ISSUE_TEMPLATE/bug_report.yml` | 缺陷报告表单 |
+| `ISSUE_TEMPLATE/feature_request.yml` | 功能建议表单 |
+| `ISSUE_TEMPLATE/onboarding.yml` | 新成员入职登记表单 |
+| `ISSUE_TEMPLATE/config.yml` | 工单入口配置，将提问引导至 Discussions |
+| `.github/workflows/welcome.yml` | 首次交互自动应答工作流 |
 
 ---
 
-## 生效规则
+## 二、生效机制
 
-1. 这些文件对**组织内所有仓库**生效，**前提是该仓库自己没有同名文件**。
-   仓库里自带的 `CONTRIBUTING.md` 优先级更高。
-2. `profile/README.md` 只在**本仓库是 public** 时才会展示在组织公开主页。
-3. 如果想让已登录成员看到额外内容（内部信息），需另建**私有**仓库 `.github-private`，
-   同样放 `profile/README.md`。
+1. 上述文件对组织内所有仓库生效，前提是目标仓库未提供同名文件。仓库内自带文件的优先级高于组织级默认文件。
+2. `profile/README.md` 仅在**本仓库可见性为 public** 时展示于组织公开主页。本仓库当前已设为 public。
+3. 若需向已登录成员展示额外内容，应另行创建**私有**仓库 `.github-private`，并在其 `profile/README.md` 中维护。
 
 ---
 
-## 怎么改
+## 三、修订流程
 
 ```bash
 git clone https://github.com/NingXia-XinQiCyberClub/.github.git
 cd .github
-# 改文件
-git switch -c docs/update-guide
+git switch -c docs/<变更说明>
+# 修改文件
 git add .
-git commit -m "docs: 更新新人入职清单"
-git push -u origin docs/update-guide
+git commit -m "docs: <变更说明>"
+git push -u origin docs/<变更说明>
 ```
 
-然后去 GitHub 开 PR。
+推送后在 GitHub 发起变更请求。`main` 分支已启用保护规则，要求至少 1 名评审人通过。
 
 ---
 
-## 待办
+## 四、待办事项
 
-- [x] 放入原版 `profile/logo.png` 并在 `profile/README.md` 中启用引用
-- [ ] 建 `guide` 仓库，写系统化教程
-- [ ] 开启 Discussions 并建分类：General / Q&A / Ideas / Show and tell
-- [ ] 给入门任务打 `good first issue` 标签
-- [ ] 设置组织基础权限为 Read
-- [ ] 强制全员开启 2FA
+- [x] 补充 `profile/logo.png` 并在 `profile/README.md` 中引用
+- [ ] 建立 `guide` 仓库，编写体系化教程
+- [ ] 核验 Discussions 分类配置（General / Q&A / Ideas / Show and tell）
+- [ ] 为入门任务添加 `good first issue` 标签
+- [ ] 配置组织默认仓库权限
+- [ ] 启用组织级两步验证强制策略
+- [ ] 上传组织头像（GitHub 未提供该接口，需手动操作）

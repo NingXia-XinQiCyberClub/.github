@@ -1,17 +1,17 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 💬 提问 / 求助
+  - name: 技术提问与支持
     url: https://github.com/NingXia-XinQiCyberClub/.github/discussions/categories/q-a
-    about: 代码跑不起来、报错看不懂、Git 不会用 —— 请到 Discussions 提问，方便后来人搜索。
+    about: 运行错误、构建失败、Git 使用问题，请在 Discussions 中提问，以便检索与沉淀。
 
-  - name: 💡 提议新功能 / 新项目
+  - name: 功能与项目提议
     url: https://github.com/NingXia-XinQiCyberClub/.github/discussions/categories/ideas
-    about: 有想法先聊，确认方向后再动手写代码。
+    about: 提出功能设想或新项目方向，确认方案后再进入实现阶段。
 
-  - name: 🔐 上报安全漏洞
+  - name: 安全缺陷上报
     url: https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SECURITY.md
-    about: 发现密钥泄露或安全缺陷，请私下上报，不要开公开 issue。
+    about: 发现凭据泄露或安全缺陷，请按安全政策私下上报，不得提交公开工单。
 
-  - name: 📖 阅读贡献指南
+  - name: 贡献指南
     url: https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md
-    about: 环境配置、分支规范、提交规范、PR 流程都在这里。
+    about: 环境配置、分支规范、提交信息规范与变更请求流程。

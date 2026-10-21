@@ -1,23 +1,23 @@
-name: 🎓 新人入职
-description: 加入鑫启网安社团后的第一步，按清单逐项完成
+name: 新成员入职登记
+description: 新成员入门流程的第一步，按清单逐项完成并登记
 title: "[入职] "
 labels: ["onboarding"]
 body:
   - type: markdown
     attributes:
       value: |
-        ## 欢迎加入鑫启网安社团 👋
+        ## 入职流程
 
-        这张 issue 就是你的**入职清单**。按顺序做完，大约 **30 分钟**。
-        每完成一项就勾选一项，全部勾完后 maintainer 会给你开通对应仓库权限。
+        本工单作为入职任务清单使用，按顺序逐项完成，预计耗时 30 分钟。
+        每完成一项即勾选对应条目。全部完成后，维护者将开通相应仓库权限。
 
-        > 卡住了不要硬扛 —— 直接在下面回帖说明卡在哪一步，会有人帮你。
+        执行过程中遇到阻碍，应在本工单内回复说明具体环节，不得跳过。
 
   - type: input
     id: name
     attributes:
-      label: 你的称呼
-      description: 名字或常用昵称，我们这样称呼你
+      label: 称呼
+      description: 姓名或固定使用的昵称
       placeholder: 张三 / zs
     validations:
       required: true
@@ -25,8 +25,8 @@ body:
   - type: input
     id: github
     attributes:
-      label: 你的 GitHub 用户名
-      placeholder: "@your-username"
+      label: GitHub 用户名
+      placeholder: "@username"
     validations:
       required: true
 
@@ -47,17 +47,17 @@ body:
   - type: dropdown
     id: interest
     attributes:
-      label: 最感兴趣的方向
+      label: 研究兴趣
       multiple: true
       options:
         - Web 安全
         - Pwn / 二进制
-        - Reverse 逆向
+        - Reverse 逆向工程
         - Crypto 密码学
-        - Misc 杂项
-        - 内网渗透 / 红队
-        - 安全开发 / 工具
-        - 还不太确定
+        - Misc
+        - 内网渗透与红队技术
+        - 安全工具开发
+        - 尚未确定
     validations:
       required: true
 
@@ -65,39 +65,39 @@ body:
     id: checklist
     attributes:
       label: 入职清单
-      description: 按顺序完成，做完一项勾一项
+      description: 按顺序完成，逐项勾选
       options:
-        - label: "**① 开启两步验证 (2FA)** — GitHub → Settings → Password and authentication"
+        - label: "步骤 1：启用两步验证（GitHub → Settings → Password and authentication）"
           required: true
-        - label: "**② 安装 Git** 并配置 `user.name` / `user.email`"
+        - label: "步骤 2：安装 Git，并配置 user.name 与 user.email"
           required: true
-        - label: "**③ 配置认证** — SSH key 或 `gh auth login`"
+        - label: "步骤 3：配置认证方式（SSH 密钥或 gh auth login）"
           required: true
-        - label: "**④ 读完 [贡献指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)**"
+        - label: "步骤 4：阅读[贡献指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)"
           required: true
-        - label: "**⑤ 成功 clone 任一社团仓库** 到本地"
+        - label: "步骤 5：克隆任一组织仓库至本地"
           required: true
-        - label: "**⑥ 完成第一个 PR** — 哪怕只改一个错别字"
+        - label: "步骤 6：完成首次变更请求"
           required: true
-        - label: "**⑦ 在 [Discussions](https://github.com/NingXia-XinQiCyberClub/.github/discussions) 打个招呼**"
+        - label: "步骤 7：在 [Discussions](https://github.com/NingXia-XinQiCyberClub/.github/discussions) 中完成自我介绍"
           required: true
-        - label: "**⑧ 加入社团群 / 例会** — 向负责人索取群二维码"
+        - label: "步骤 8：加入组织通讯群组并参加例会（联系负责人获取入群方式）"
           required: false
 
   - type: textarea
     id: stuck
     attributes:
-      label: 卡在哪一步了？
-      description: 有困难就写在这里，附上报错信息
+      label: 受阻环节
+      description: 说明受阻的具体步骤与错误输出
     validations:
       required: false
 
   - type: checkboxes
     id: agreement
     attributes:
-      label: 承诺
+      label: 承诺事项
       options:
-        - label: 我已阅读并同意 [行为准则](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CODE_OF_CONDUCT.md)
+        - label: 已阅读并同意[行为准则](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CODE_OF_CONDUCT.md)
           required: true
-        - label: 我承诺**只对授权环境**进行安全测试，绝不对学校系统或他人设备做未授权测试
+        - label: 承诺仅对授权环境实施安全测试，不对学校信息系统或他人设备实施未授权测试
           required: true

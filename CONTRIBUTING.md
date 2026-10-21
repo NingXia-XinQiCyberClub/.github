@@ -1,75 +1,64 @@
 # 贡献指南
 
-> 适用于鑫启网安社团 **所有仓库**。单个仓库若有自己的 `CONTRIBUTING.md`，以该仓库的为准。
->
-> 预计阅读 10 分钟。跟着做完，你就能独立提第一个 PR。
+本文件规定鑫启网安社团各仓库的协作流程与技术约定，适用于组织内全部仓库。
+
+若单个仓库提供独立的 `CONTRIBUTING.md`，以该仓库文件为准。
 
 ---
 
-## 0. 三分钟版本
+## 1. 适用范围
 
-如果你只想快速上手，记住这三步：
+本指南适用于以下参与者：
 
-```bash
-git clone https://github.com/NingXia-XinQiCyberClub/<仓库名>.git
-cd <仓库名>
-git checkout -b feat/your-name-hello
-# 改点东西
-git add . && git commit -m "docs: 修正一个错别字"
-git push -u origin feat/your-name-hello
-# 然后去 GitHub 点 "Compare & pull request"
-```
-
-细节在下面。
+- 组织成员对任意仓库提交变更
+- 外部协作者在获得授权后提交变更
+- 维护者执行评审与合并操作
 
 ---
 
-## 1. 准备环境
+## 2. 环境准备
 
-### 1.1 安装 Git
+### 2.1 Git 安装
 
-| 系统 | 方式 |
+| 操作系统 | 安装方式 |
 | :-- | :-- |
-| **Windows** | [下载 Git for Windows](https://git-scm.com/download/win)，一路默认安装即可 |
-| **macOS** | `brew install git` 或执行 `xcode-select --install` |
-| **Linux (Debian/Ubuntu)** | `sudo apt update && sudo apt install git` |
+| Windows | 下载并安装 [Git for Windows](https://git-scm.com/download/win)，采用默认配置 |
+| macOS | `brew install git`，或执行 `xcode-select --install` |
+| Debian / Ubuntu | `sudo apt update && sudo apt install git` |
 
-验证：
+安装后验证：
 
 ```bash
 git --version
-# 应输出类似 git version 2.4x.x
 ```
 
-### 1.2 配置身份
+### 2.2 身份配置
 
-**必须做**，否则提交记录会归属错误。
+提交身份必须配置，否则提交记录无法正确归属。
 
 ```bash
-git config --global user.name "你的名字或昵称"
-git config --global user.email "你的GitHub注册邮箱"
+git config --global user.name "<姓名或固定昵称>"
+git config --global user.email "<GitHub 注册邮箱>"
 ```
 
-> 建议同时开启邮箱隐私保护：GitHub → Settings → Emails → 勾选 *Keep my email addresses private*，
-> 然后把 `user.email` 设成页面给出的 `xxxxx@users.noreply.github.com`。
+建议启用邮箱隐私保护：GitHub → Settings → Emails → 勾选 *Keep my email addresses private*，随后将 `user.email` 设置为页面提供的 `*.users.noreply.github.com` 地址。
 
-### 1.3 配置认证（二选一）
+### 2.3 认证配置
+
+以下两种方式择一。
 
 **方式 A：SSH（推荐）**
 
 ```bash
-ssh-keygen -t ed25519 -C "你的邮箱"
-# 一路回车，默认路径即可
+ssh-keygen -t ed25519 -C "<邮箱>"
 ```
 
-然后把 `~/.ssh/id_ed25519.pub`（Windows 在 `C:\Users\你的用户名\.ssh\`）的内容
-粘贴到 GitHub → Settings → SSH and GPG keys → New SSH key。
+将公钥 `~/.ssh/id_ed25519.pub`（Windows 位于 `%USERPROFILE%\.ssh\`）的内容添加至 GitHub → Settings → SSH and GPG keys。
 
 验证：
 
 ```bash
 ssh -T git@github.com
-# 成功会看到: Hi 用户名! You've successfully authenticated...
 ```
 
 **方式 B：GitHub CLI**
@@ -78,226 +67,228 @@ ssh -T git@github.com
 gh auth login
 ```
 
-跟着交互提示选 `GitHub.com` → `HTTPS` → 浏览器登录。
+按提示依次选择 `GitHub.com`、`HTTPS` 与浏览器授权。
 
-### 1.4 一个趁手的编辑器
+### 2.4 编辑器
 
-| 编辑器 | 说明 |
-| :-- | :-- |
-| **VS Code** | 最通用，内置 Git 面板，推荐新手 |
-| Neovim / Zed | 熟悉命令行的同学随意 |
+推荐使用 Visual Studio Code，其内置 Git 面板可覆盖本指南涉及的全部操作。
 
 ---
 
-## 2. Git 最小知识集
+## 3. Git 基本操作
 
-社团里你只需要掌握这些，**不用**先学 rebase、submodule、cherry-pick。
-
-### 2.1 三个区域
+### 3.1 工作区模型
 
 ```
-工作区  ──git add──▶  暂存区  ──git commit──▶  本地仓库  ──git push──▶  远程仓库
-(改文件)              (待提交)                (历史记录)              (GitHub)
+工作区 ──git add──▶ 暂存区 ──git commit──▶ 本地仓库 ──git push──▶ 远程仓库
 ```
 
-### 2.2 高频命令速查
+### 3.2 常用命令
 
-| 目的 | 命令 |
+| 操作目的 | 命令 |
 | :-- | :-- |
 | 克隆仓库 | `git clone <地址>` |
-| 看当前状态 | `git status` |
-| 拉取最新代码 | `git pull` |
-| 建并切换分支 | `git switch -c <分支名>` |
+| 查看工作区状态 | `git status` |
+| 同步远程更新 | `git pull` |
+| 创建并切换分支 | `git switch -c <分支名>` |
 | 切换分支 | `git switch <分支名>` |
-| 暂存所有改动 | `git add .` |
-| 提交 | `git commit -m "说明"` |
+| 暂存全部改动 | `git add .` |
+| 提交 | `git commit -m "<提交信息>"` |
 | 推送 | `git push` |
-| 看提交历史 | `git log --oneline -10` |
-| 看改了什么 | `git diff` |
-| 撤销未暂存的改动 | `git restore <文件>` |
-| 撤销最后一次提交（保留改动） | `git reset --soft HEAD~1` |
+| 查看提交历史 | `git log --oneline -10` |
+| 查看未暂存差异 | `git diff` |
+| 撤销未暂存改动 | `git restore <文件>` |
+| 撤销最近一次提交并保留改动 | `git reset --soft HEAD~1` |
 
-### 2.3 常见报错怎么办
+### 3.3 常见错误处理
 
-| 报错 | 原因 | 解法 |
+| 报错信息 | 成因 | 处理方式 |
 | :-- | :-- | :-- |
-| `Please tell me who you are` | 没配 user.name / user.email | 回到 1.2 |
-| `Permission denied (publickey)` | SSH key 没配好 | 回到 1.3，或改用 `gh auth login` |
-| `Updates were rejected` | 远程有你没有的提交 | 先 `git pull --rebase`，再 `git push` |
-| `fatal: not a git repository` | 当前目录不对 | `cd` 到仓库目录 |
-| `CONFLICT (content)` | 冲突 | 见 2.4 |
+| `Please tell me who you are` | 未配置提交身份 | 参见 2.2 |
+| `Permission denied (publickey)` | SSH 密钥未配置或未加载 | 参见 2.3，或改用 GitHub CLI 认证 |
+| `Updates were rejected` | 远程分支存在本地缺失的提交 | 先执行 `git pull --rebase`，再推送 |
+| `fatal: not a git repository` | 工作目录错误 | 切换至仓库根目录 |
+| `CONFLICT (content)` | 合并冲突 | 参见 3.4 |
 
-### 2.4 遇到冲突
+### 3.4 冲突处理
 
-打开冲突文件，会看到：
+冲突文件包含如下标记：
 
 ```
 <<<<<<< HEAD
-你的改动
+本地改动
 =======
-别人的改动
+远程改动
 >>>>>>> main
 ```
 
-**手动**删掉 `<<<<<<<`、`=======`、`>>>>>>>` 三行标记，把内容改成你想要的最终版本，然后：
+处理步骤：
 
-```bash
-git add <冲突文件>
-git commit
-```
+1. 删除 `<<<<<<<`、`=======`、`>>>>>>>` 三行标记
+2. 将内容整合为最终版本
+3. 执行 `git add <冲突文件>`
+4. 执行 `git commit`
 
-> 拿不准就**直接问**，不要乱删别人的代码。
+无法判断取舍时，应向该文件的最近提交者或维护者确认，不得随意删除他人改动。
 
 ---
 
-## 3. 分支规范
+## 4. 分支规范
 
-`main` 分支受保护，**禁止直接推送**。所有改动走分支 + PR。
+`main` 分支受保护，禁止直接推送。全部变更须经分支与变更请求（Pull Request）流程合入。
 
-### 3.1 命名
+### 4.1 命名规则
 
 ```
-<类型>/<简短描述>
+<类型>/<简要描述>
 ```
 
-| 类型 | 用途 | 例子 |
+| 类型 | 用途 | 示例 |
 | :-- | :-- | :-- |
-| `feat` | 新功能 | `feat/add-flag-handler` |
-| `fix` | 修 bug | `fix/login-timeout` |
-| `docs` | 只改文档 | `docs/update-readme` |
-| `refactor` | 重构（不改行为） | `refactor/split-utils` |
-| `chore` | 杂项（配置、依赖） | `chore/bump-requests` |
-| `test` | 加测试 | `test/cover-parse` |
+| `feat` | 新增功能 | `feat/add-flag-handler` |
+| `fix` | 缺陷修复 | `fix/login-timeout` |
+| `docs` | 文档变更 | `docs/update-readme` |
+| `refactor` | 重构，不改变外部行为 | `refactor/split-utils` |
+| `chore` | 构建、依赖与配置调整 | `chore/bump-requests` |
+| `test` | 测试相关 | `test/cover-parse` |
 
-**要求**：全小写、用连字符、不含中文和空格。
+命名要求：全小写，使用连字符分隔，不得包含中文、空格或下划线。
 
-### 3.2 从哪切分支
+### 4.2 分支来源
 
-始终从最新的 `main` 切：
+分支应始终基于最新的 `main` 创建：
 
 ```bash
 git switch main
 git pull
-git switch -c feat/your-thing
+git switch -c <分支名>
 ```
 
 ---
 
-## 4. 提交信息规范
+## 5. 提交信息规范
 
-采用 **Conventional Commits**（简化版）：
-
-```
-<类型>(<可选范围>): <一句话说明>
-
-<可选正文：为什么这么改>
-```
-
-**示例**：
+采用 Conventional Commits 的简化形式：
 
 ```
-feat(flag_handler): 支持 UDP 接收
-fix: 修复端口号校验越界
-docs: 补充 Windows 安装步骤
-chore: 升级 requirements 里的 requests
+<类型>(<可选范围>): <变更摘要>
+
+<可选正文：变更动因与影响>
 ```
 
-**要求**：
-- 一行不超过 72 个字符
-- 用**祈使句**："添加 X" 而不是 "添加了 X"
-- 一次提交只做一件事
-- 不要写 "update"、"修改"、"fix bug" 这种无信息量的说明
+示例：
+
+```
+feat(flag_handler): 支持 UDP 数据接收
+fix: 修正端口号校验的越界判断
+docs: 补充 Windows 环境安装步骤
+chore: 升级 requests 依赖版本
+```
+
+要求：
+
+- 摘要行不超过 72 个字符
+- 使用祈使语气，描述变更而非已完成状态
+- 单次提交仅对应一项逻辑变更
+- 禁止使用 `update`、`修改`、`fix bug` 等无信息量的摘要
 
 ---
 
-## 5. PR 流程
+## 6. 变更请求流程
 
-### 5.1 提交前自检
+### 6.1 提交前检查
 
-- [ ] 代码能在本地跑起来
-- [ ] 没有把密码、token、flag、内网 IP 提交上去
-- [ ] 没有提交无关文件（`.venv/`、`node_modules/`、`__pycache__/`、编辑器配置）
-- [ ] 提交信息符合规范
-- [ ] 已 `git pull --rebase origin main` 同步最新代码
+- 本地可正常构建与运行
+- 未包含密码、令牌、私钥、真实 flag 或内网地址
+- 未包含无关文件（`.venv/`、`node_modules/`、`__pycache__/`、编辑器配置）
+- 提交信息符合第 5 节要求
+- 已执行 `git pull --rebase origin main` 同步最新代码
 
-### 5.2 发起 PR
+### 6.2 发起变更请求
 
-推送分支后，GitHub 会提示 **Compare & pull request**，点它。或者：
+推送分支后，于 GitHub 点击 **Compare & pull request**，或访问：
 
 ```
 https://github.com/NingXia-XinQiCyberClub/<仓库名>/compare
 ```
 
-PR 描述会自动带上模板，把每一项填清楚。
+变更请求描述由模板生成，须逐项填写。
 
-### 5.3 Review
+### 6.3 评审
 
-- 至少 **1 位** maintainer approve 才能合并
-- 收到修改意见后，**在同一个分支继续提交**并推送，PR 会自动更新（不要关掉重开）
-- CI 红了先看日志，多数是格式或依赖问题
+- 合入前须至少获得 1 名维护者批准
+- 评审意见的处理方式为在原分支追加提交并推送，变更请求将自动更新；不得关闭后重新发起
+- 持续集成失败时，应先查阅构建日志，多数情形由格式或依赖问题导致
 
-### 5.4 合并
+### 6.4 合并
 
-由 maintainer 操作，默认 **Squash and merge**。合并后你的分支会被删除，本地清理：
+由维护者执行，默认采用 **Squash and merge**。合并后源分支自动删除，本地同步方式：
 
 ```bash
 git switch main
 git pull
-git branch -d feat/your-thing
+git branch -d <分支名>
 ```
 
 ---
 
-## 6. 代码风格
+## 7. 代码风格
 
 | 语言 | 工具 | 要求 |
 | :-- | :-- | :-- |
-| Python | `ruff` | 提交前 `ruff check . && ruff format .` |
-| JavaScript / TypeScript | `prettier` | `npx prettier --write .` |
-| C / C++ | `clang-format` | 跟随仓库 `.clang-format` |
-| Markdown | — | 一行一句、表格对齐即可 |
+| Python | ruff | 提交前执行 `ruff check . && ruff format .` |
+| JavaScript / TypeScript | prettier | 执行 `npx prettier --write .` |
+| C / C++ | clang-format | 遵循仓库内 `.clang-format` |
+| Markdown | — | 单行单句，表格对齐 |
 
-通用原则：
-- 变量名用英文，**不要拼音**
-- 函数不超过 50 行，超了就拆
-- 关键逻辑写注释说明**为什么**，不是**做什么**
-- 不留 `print("debug")`、`TODO` 无主
+通用约定：
 
----
-
-## 7. 安全红线
-
-社团仓库涉及攻防技术，**必须**遵守：
-
-1. **不提交任何真实凭据**：密码、API Key、Cookie、私钥、数据库连接串
-2. **不提交真实 flag**：比赛 flag 统一用 `flag{test}` 占位
-3. **不提交内网信息**：真实 IP、域名、学号、身份证、手机号
-4. **靶场代码需标注**：在 README 顶部写明「仅用于授权环境测试」
-5. **不要向他人系统做任何未授权测试** —— 这是法律问题，不是纪律问题
-
-一旦误提交了密钥：**立刻**在仓库 Discussions 或私下通知 maintainer，我们会帮你轮换并清理历史。**不要**自己 force push 掩盖。
+- 标识符使用英文，不使用拼音
+- 单个函数不超过 50 行，超出应予拆分
+- 注释说明设计动因与约束条件，不描述代码字面行为
+- 不得保留调试输出、无主 `TODO` 或注释掉的废弃代码
 
 ---
 
-## 8. 求助
+## 8. 安全合规要求
 
-| 情况 | 去哪 |
+本组织涉及攻防技术研究，全部仓库须遵守以下条款。
+
+1. 不得提交任何真实凭据，包括密码、API 密钥、Cookie、私钥与数据库连接串。
+2. 不得提交真实 flag。示例与测试数据统一使用 `flag{test}` 占位。
+3. 不得提交内网信息，包括真实 IP、域名、学号、身份证号与手机号。
+4. 靶场与演练代码须在 `README` 顶部注明适用环境为授权测试环境。
+5. 不得对任何未获书面授权的系统实施安全测试。
+
+若误提交凭据，应立即通知维护者并轮换该凭据。清理提交历史不能替代凭据轮换，因为公开仓库的内容应视为已泄露。
+
+---
+
+## 9. 支持渠道
+
+| 事项 | 渠道 |
 | :-- | :-- |
-| 不会用 Git | 先看本文第 2 节，再看 [SUPPORT.md](./SUPPORT.md) |
-| 代码跑不起来 | Discussions → Q&A，附完整报错 |
-| 发现安全问题 | 按 [SECURITY.md](./SECURITY.md) 私下上报 |
-| 想提议新项目 | Discussions → Ideas |
-| 与人协作不愉快 | 私下联系 maintainer |
+| Git 与 GitHub 使用问题 | 本文件第 3 节，及 [SUPPORT.md](./SUPPORT.md) |
+| 运行错误 | Discussions → Q&A，须附完整错误输出 |
+| 安全缺陷 | [SECURITY.md](./SECURITY.md)，私下上报 |
+| 新项目提议 | Discussions → Ideas |
+| 协作纠纷 | 私下联系维护者 |
 
 ---
 
-## 9. 新手任务去哪找
+## 10. 入门任务
 
-- 仓库的 **Issues → `good first issue`** 标签
-- 或者直接打开 `https://github.com/NingXia-XinQiCyberClub/<仓库名>/contribute`
+入门任务的获取渠道：
+
+- 各仓库 Issues 中标记为 `good first issue` 的条目
+- 仓库 `/contribute` 页面，该页面自动聚合 `good first issue` 与 `help wanted` 标签
 
 ---
 
 <div align="center">
-<sub>本指南随社团发展持续更新。发现不合理之处，欢迎提 PR 修改。</sub>
+<sub>
+
+本指南随组织发展持续修订。修订建议通过变更请求提出。
+
+</sub>
 </div>
