@@ -11,7 +11,7 @@
 | 路径 | 作用 |
 | :-- | :-- |
 | `profile/README.md` | **组织主页** 展示的内容（`github.com/NingXia-XinQiCyberClub` 的 Overview） |
-| `profile/logo.png` | 组织图标（**待补：需放入原版 PNG**） |
+| `profile/logo.png` | 组织图标（512×512, 透明底） |
 | `CONTRIBUTING.md` | 全组织默认贡献指南 |
 | `CODE_OF_CONDUCT.md` | 行为准则 |
 | `SECURITY.md` | 安全漏洞上报政策 |
@@ -52,7 +52,7 @@ git push -u origin docs/update-guide
 
 ## 待办
 
-- [ ] 放入原版 `profile/logo.png` 并在 `profile/README.md` 中启用引用
+- [x] 放入原版 `profile/logo.png` 并在 `profile/README.md` 中启用引用
 - [ ] 建 `guide` 仓库，写系统化教程
 - [ ] 开启 Discussions 并建分类：General / Q&A / Ideas / Show and tell
 - [ ] 给入门任务打 `good first issue` 标签
