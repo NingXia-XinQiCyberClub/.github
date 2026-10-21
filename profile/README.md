@@ -1,6 +1,7 @@
 <div align="center">
 
-<img src="./logo.svg" width="120" alt="鑫启网安社团">
+<!-- LOGO: 拿到原版 PNG 后放入 profile/logo.png，并取消下面一行注释 -->
+<!-- <img src="./logo.png" width="120" alt="鑫启网安社团"> -->
 
 # 鑫启网安社团
 
