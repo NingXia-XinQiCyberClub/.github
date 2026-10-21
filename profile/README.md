@@ -39,7 +39,7 @@
 - 所有仓库遵循统一的 [行为准则](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CODE_OF_CONDUCT.md)
 - 安全漏洞请按 [SECURITY.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SECURITY.md) **私下**上报，不要开公开 issue
 - 遇到问题先看 [求助指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SUPPORT.md)
-- 提问请在 **Discussions → Q&A** 发帖，方便沉淀搜索
+- 提问请在 **Discussions → Q&A** 发帖，方便沉淀搜索 —— [去提问](https://github.com/NingXia-XinQiCyberClub/.github/discussions/categories/q-a)
 
 ## 加入我们
 

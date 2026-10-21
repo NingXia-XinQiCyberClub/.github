@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         先想清楚**要解决什么问题**，再想怎么实现。
-        如果只是一个模糊的想法，建议先发到 [Discussions → Ideas](https://github.com/orgs/NingXia-XinQiCyberClub/discussions/categories/ideas) 聊聊。
+        如果只是一个模糊的想法，建议先发到 [Discussions → Ideas](https://github.com/NingXia-XinQiCyberClub/.github/discussions/categories/ideas) 聊聊。
 
   - type: textarea
     id: problem

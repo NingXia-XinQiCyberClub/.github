@@ -79,7 +79,7 @@ body:
           required: true
         - label: "**⑥ 完成第一个 PR** — 哪怕只改一个错别字"
           required: true
-        - label: "**⑦ 在 [Discussions](https://github.com/orgs/NingXia-XinQiCyberClub/discussions) 打个招呼**"
+        - label: "**⑦ 在 [Discussions](https://github.com/NingXia-XinQiCyberClub/.github/discussions) 打个招呼**"
           required: true
         - label: "**⑧ 加入社团群 / 例会** — 向负责人索取群二维码"
           required: false

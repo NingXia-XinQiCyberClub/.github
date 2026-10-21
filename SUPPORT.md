@@ -31,8 +31,7 @@
 **统一的提问入口**：
 
 ```
-https://github.com/orgs/NingXia-XinQiCyberClub/discussions
-```
+https://github.com/NingXia-XinQiCyberClub/.github/discussions```
 
 ---
 
