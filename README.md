@@ -17,9 +17,10 @@
 | `PULL_REQUEST_TEMPLATE.md` | 组织级默认变更请求模板 |
 | `.github/ISSUE_TEMPLATE/bug_report.yml` | 缺陷报告表单 |
 | `.github/ISSUE_TEMPLATE/feature_request.yml` | 功能建议表单 |
-| `.github/ISSUE_TEMPLATE/onboarding.yml` | 新成员入职登记表单 |
+| `.github/ISSUE_TEMPLATE/join.yml` | 加入社团申请表单（含流程清单与信息登记） |
 | `.github/ISSUE_TEMPLATE/config.yml` | 工单入口配置，将提问引导至 Discussions |
 | `.github/workflows/welcome.yml` | 首次交互自动应答工作流 |
+| `.github/workflows/validate-join.yml` | 加入申请学号格式校验工作流 |
 
 ---
 
@@ -127,7 +128,8 @@ good first issue  help wanted  invalid  question  wontfix
 | 标签 | 建议颜色 | 用途 |
 | :-- | :-- | :-- |
 | `triage` | `fbca04` | 待分类，等待维护者评估优先级与归属 |
-| `onboarding` | `0e8a16` | 新成员入职流程相关 |
+| `membership` | `0e8a16` | 加入社团申请与成员登记 |
+| `needs-info` | `d93f0b` | 信息不完整或格式不符，需补充 |
 
 创建命令：
 
@@ -137,8 +139,11 @@ for repo in <仓库1> <仓库2>; do
     -f name="triage" -f color="fbca04" \
     -f description="待分类，等待维护者评估优先级与归属"
   gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" \
-    -f name="onboarding" -f color="0e8a16" \
-    -f description="新成员入职流程相关"
+    -f name="membership" -f color="0e8a16" \
+    -f description="加入社团申请与成员登记"
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" \
+    -f name="needs-info" -f color="d93f0b" \
+    -f description="信息不完整或格式不符，需补充"
 done
 ```
 
@@ -147,7 +152,8 @@ PowerShell 等价写法：
 ```powershell
 foreach ($repo in @('<仓库1>','<仓库2>')) {
   gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="triage" -f color="fbca04" -f description="待分类，等待维护者评估优先级与归属"
-  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="onboarding" -f color="0e8a16" -f description="新成员入职流程相关"
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="membership" -f color="0e8a16" -f description="加入社团申请与成员登记"
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="needs-info" -f color="d93f0b" -f description="信息不完整或格式不符，需补充"
 }
 ```
 
@@ -181,7 +187,7 @@ gh api -X PUT "repos/NingXia-XinQiCyberClub/<仓库>/branches/main/protection" \
 ### 6.5 检查项汇总
 
 - [ ] `.github/ISSUE_TEMPLATE/` 目录存在，且包含 `config.yml`
-- [ ] `triage` 与 `onboarding` 标签已创建
+- [ ] `triage`、`membership`、`needs-info` 标签已创建
 - [ ] 合并方式仅保留 Squash，且合并后自动删除分支
 - [ ] `main` 分支保护已启用
 - [ ] Discussions 是否需开启（教程与配置类仓库建议开启）

@@ -1,0 +1,157 @@
+name: 加入社团申请
+description: 申请加入鑫启网安社团，按清单完成加入流程并登记基本信息
+title: "[加入] "
+labels: ["membership"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 加入流程
+
+        本工单同时作为申请登记与任务清单使用，按顺序完成各项，预计耗时 45 分钟。
+
+        每项步骤均附教程链接，操作前请先阅读对应章节。全部条目完成后，维护者将处理加入申请并开通仓库权限。
+
+        执行过程中遇到阻碍，应在本工单内回复说明具体环节，不得跳过。
+
+        > GitHub 用户名无需填写。工单创建者即为申请人，系统自动记录账号信息。
+
+  - type: markdown
+    attributes:
+      value: |
+        ### 一、基本信息
+
+  - type: input
+    id: real-name
+    attributes:
+      label: 中文姓名
+      description: 填写本人真实姓名，用于成员登记与赛事报名
+      placeholder: 张三
+    validations:
+      required: true
+
+  - type: input
+    id: english-name
+    attributes:
+      label: 英文名
+      description: 选填。用于对外交流或英文署名，无则留空
+      placeholder: Zhang San
+    validations:
+      required: false
+
+  - type: input
+    id: student-id
+    attributes:
+      label: 学号
+      description: |
+        填写 11 位数字学号，格式如 12024242193。
+        提交后系统自动校验，格式不符时将回复提示并要求修正。
+      placeholder: "12024242193"
+    validations:
+      required: true
+      min_length: 11
+
+  - type: dropdown
+    id: grade
+    attributes:
+      label: 年级
+      options:
+        - 大一
+        - 大二
+        - 大三
+        - 大四
+        - 研究生
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    id: major
+    attributes:
+      label: 学院与专业
+      description: 选填。用于统计成员构成
+      placeholder: 信息工程学院 网络工程
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ### 二、研究兴趣
+
+  - type: dropdown
+    id: interest
+    attributes:
+      label: 研究兴趣
+      description: 可多选。选择不限定后续方向，仅用于分配学习资源与组建参赛队伍
+      multiple: true
+      options:
+        - Web 安全
+        - Pwn / 二进制
+        - Reverse 逆向工程
+        - Crypto 密码学
+        - Misc
+        - 内网渗透与红队技术
+        - 安全工具开发
+        - AI 安全（模型对抗与鲁棒性）
+        - 大模型安全（提示注入与越狱防护）
+        - AI 辅助安全分析
+        - 机器学习与深度学习基础
+        - 数据安全与隐私计算
+        - 尚未确定
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ### 三、加入流程清单
+
+        按顺序执行，完成后勾选。每一步骤均附教程链接。
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 流程清单
+      options:
+        - label: "步骤 1：启用两步验证 — 教程见[第 0 章 0.2 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#02-启用两步验证)"
+          required: true
+        - label: "步骤 2：安装并配置 Git — 教程见[第 0 章 0.3 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#03-安装并配置-git)"
+          required: true
+        - label: "步骤 3：配置认证方式（SSH 或 GitHub CLI）— 教程见[第 0 章 0.4 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#04-配置认证方式)"
+          required: true
+        - label: "步骤 4：阅读贡献指南与行为准则 — 教程见[第 0 章 0.5 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#05-阅读规范文件)"
+          required: true
+        - label: "步骤 5：克隆任一组织仓库 — 教程见[第 0 章 0.6 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#06-克隆仓库)"
+          required: true
+        - label: "步骤 6：完成首次变更请求 — 教程见[第 0 章 0.7 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#07-完成首次变更请求)"
+          required: true
+        - label: "步骤 7：在 Discussions 完成自我介绍 — 教程见[第 0 章 0.8 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#08-参与-discussions)"
+          required: true
+        - label: "步骤 8：加入通讯群组并参加例会 — 教程见[第 0 章 0.9 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#09-加入通讯群组与例会)"
+          required: false
+
+  - type: textarea
+    id: stuck
+    attributes:
+      label: 受阻环节
+      description: 说明受阻的具体步骤与错误输出，便于维护者协助
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ### 四、承诺事项
+
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: 承诺
+      options:
+        - label: 已阅读并同意[行为准则](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CODE_OF_CONDUCT.md)
+          required: true
+        - label: 承诺仅对授权环境实施安全测试，不对学校信息系统或他人设备实施未授权测试
+          required: true
+        - label: 所填信息真实有效，同意组织用于成员登记与赛事报名
+          required: true

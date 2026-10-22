@@ -29,8 +29,8 @@
    见 [guide 仓库](https://github.com/NingXia-XinQiCyberClub/guide)，共八章，涵盖基础环境、实验环境、协作流程、代码规范与竞赛入门。
    规范性文件为 [CONTRIBUTING.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)。
 
-2. **提交入职登记**
-   通过[入职登记表单](https://github.com/NingXia-XinQiCyberClub/.github/issues/new?template=onboarding.yml)创建工单，系统将生成任务清单，逐项完成后即完成入门流程。
+2. **提交加入申请**
+   通过[加入社团申请](https://github.com/NingXia-XinQiCyberClub/.github/issues/new?template=join.yml)创建工单，填写基本信息并勾选流程清单，逐项完成后即完成加入流程。
 
 3. **承接入门任务**
    检索 `good first issue` 标签，完成首次变更请求。该标签同时会聚合至各仓库的 `/contribute` 页面。
