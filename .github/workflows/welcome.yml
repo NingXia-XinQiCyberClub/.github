@@ -1,6 +1,7 @@
 name: 首次交互自动应答
 
-# 在成员首次提交工单或变更请求时自动回复规范提示。
+# 在成员首次提交工单或变更请求时自动回复提示。
+# 工单按标签区分文案：membership 标签使用加入流程提示，其余使用缺陷报告提示。
 # 本文件位于组织级 .github 仓库，仅对该仓库生效。
 # 若需覆盖全部仓库，应将该文件复制至各仓库的 .github/workflows/ 目录。
 
@@ -15,29 +16,81 @@ permissions:
   pull-requests: write
 
 jobs:
-  respond:
+  respond-issue:
+    if: github.event_name == 'issues'
     runs-on: ubuntu-latest
     steps:
-      - name: 首次交互提示
+      - name: 工单首次交互提示
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+            const author = issue.user.login;
+
+            // 判定是否为该作者在本仓库的首个工单
+            const search = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${owner}/${repo} type:issue author:${author}`,
+              per_page: 100,
+            });
+            const others = search.data.items.filter((i) => i.number !== issue.number);
+            if (others.length > 0) {
+              core.info(`非首个工单，跳过：${author}`);
+              return;
+            }
+
+            const labels = (issue.labels || []).map((l) => (typeof l === 'string' ? l : l.name));
+
+            const joinMessage = [
+              '### 已收到加入社团申请',
+              '',
+              '感谢申请加入鑫启网安社团。请按以下顺序完成申请工单中的各项流程：',
+              '',
+              '1. 阅读[第 0 章 加入社团流程](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md)，该章节对应本工单的每一项检查条目',
+              '2. 按清单顺序执行，每完成一项即勾选对应条目',
+              '3. 学号须为 11 位数字，格式不符时系统会自动回复提示，修改工单正文后即重新校验',
+              '4. 全部条目完成后，维护者将处理申请并开通仓库权限',
+              '',
+              '执行过程中遇到阻碍，可直接在本工单内回复说明具体环节。',
+              '',
+              '相关文件：[行为准则](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CODE_OF_CONDUCT.md) · [贡献指南](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)',
+            ].join('\n');
+
+            const defaultMessage = [
+              '本仓库已收到您的首个工单。',
+              '',
+              '为提高处理效率，请确认以下事项：',
+              '- 已检索既有工单，确认非重复报告',
+              '- 已附完整错误输出（文本形式，非截图）',
+              '- 已说明操作系统与运行时版本',
+              '',
+              '提问规范见 [SUPPORT.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SUPPORT.md)，贡献流程见 [CONTRIBUTING.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)。',
+              '',
+              '> 涉及安全缺陷或凭据泄露的，不得公开讨论，应按',
+              '> [SECURITY.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SECURITY.md) 私下上报。',
+            ].join('\n');
+
+            const body = labels.includes('membership') ? joinMessage : defaultMessage;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issue.number,
+              body,
+            });
+
+            core.info(`已回复首次工单：${author}（标签：${labels.join(',') || '无'}）`);
+
+  respond-pr:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 变更请求首次交互提示
         uses: actions/first-interaction@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          issue-message: |
-            本仓库已收到您的首次工单。
-
-            为提高处理效率，请确认以下事项：
-            - 已检索既有工单，确认非重复报告
-            - 已附完整错误输出（文本形式，非截图）
-            - 已说明操作系统与运行时版本
-
-            提问规范见 [SUPPORT.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SUPPORT.md)，
-            入门流程见 [CONTRIBUTING.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)。
-
-            > 涉及安全缺陷或凭据泄露的，不得公开讨论，应按
-            > [SECURITY.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SECURITY.md) 私下上报。
-
           pr-message: |
-            本仓库已收到您的首次变更请求。
+            本仓库已收到您的首个变更请求。
 
             维护者将在 48 小时内完成评审。等待期间请确认：
             - 未包含密码、令牌、私钥、真实 flag 或内网地址
