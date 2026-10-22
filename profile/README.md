@@ -60,6 +60,22 @@
 
 准入标准以参与意愿与执行能力为主要依据，不设技术水平门槛。
 
+## 六、飞书团队
+
+日常沟通、通知与例会协调在飞书团队内进行。团队已开启加入审批，扫码提交申请后由管理员确认。
+
+<div align="center">
+
+<img src="https://ningxia-xinqicyberclub.github.io/assets/img/feishu-qr.png" width="220" alt="飞书团队邀请二维码">
+
+有效期至 2026 年 11 月 21 日 00:00 · 仅限 +86 手机号注册的账号 · 团队名称：宁夏大学鑫启网安俱乐部
+
+</div>
+
+审批通过后联系任一维护者进入日常沟通群组，并将群昵称改为「姓名-年级」。技术问题的讨论过程与结论仍应归档至 Discussions 或工单，不得仅停留在即时通讯中。
+
+站点[联系方式](https://ningxia-xinqicyberclub.github.io/#/contact)页面提供同一二维码与完整说明。
+
 ---
 
 <div align="center">
