@@ -21,6 +21,7 @@
 | `.github/ISSUE_TEMPLATE/config.yml` | 工单入口配置，将提问引导至 Discussions |
 | `.github/workflows/welcome.yml` | 首次交互自动应答工作流 |
 | `.github/workflows/validate-join.yml` | 加入申请学号格式校验工作流 |
+| `.github/workflows/invite-member.yml` | 加入申请校验通过后自动发出组织邀请工作流 |
 
 ---
 
@@ -89,6 +90,29 @@ git push -u origin docs/<变更说明>
 
 `guide` 仓库中标有 `good first issue` 的工单构成新成员入门任务集，详见该仓库 README 的「入门任务」一节。任务完成后由维护者评审合并，作为首次变更请求的实践。
 
+### 5.4 成员邀请
+
+加入申请工单通过校验后，由 `invite-member.yml` 自动发出组织邀请，角色固定为 **Member**（`direct_member`），不授予 Owner。
+
+决策依据：自动化只承担可机械判定的部分（学号格式、流程清单、承诺事项），减少维护者的重复操作；角色不随自动化放开，避免权限扩张。
+
+约束条件：
+
+1. 工作流不修改现有成员的角色。申请账号若已是成员，仅回复说明并跳过，**不降级、不提权**。
+2. 邀请由申请人在 7 天内自行接受，逾期需重新发出；工作流只能投递邀请，不能代为接受。
+3. 邀请依赖仓库密钥 `ORG_INVITE_TOKEN`，须具备 `admin:org` 范围或 GitHub App 的 Members 读写权限。默认 `GITHUB_TOKEN` 无组织管理权限，不可替代。
+4. 新增成员默认只读公开仓库。私有仓库仍须按 5.1 的约束单独授权。
+5. 校验通过仅代表**格式合规**，不代表身份核实。学号与姓名为申请人自填，工单正文公开可见，存在冒填可能；如需收紧，应在 5.1 的规模评估中一并调整。
+
+开关：仓库变量 `AUTO_INVITE`。**默认开启**，仅当显式设为 `off` 时整条工作流跳过，不打标签、不发评论、不报错。
+
+```bash
+gh variable set AUTO_INVITE --body off --repo NingXia-XinQiCyberClub/.github   # 关闭
+gh variable set AUTO_INVITE --body on  --repo NingXia-XinQiCyberClub/.github   # 开启
+```
+
+关闭后工单保持原样，由维护者按人工流程处理。已发出的邀请不受影响，仍须在组织 People 页面的 pending 列表中撤销。
+
 ---
 
 ## 六、新建仓库检查清单
@@ -132,6 +156,7 @@ good first issue  help wanted  invalid  question  wontfix
 | `triage` | `fbca04` | 待分类，等待维护者评估优先级与归属 |
 | `membership` | `0e8a16` | 加入社团申请与成员登记 |
 | `needs-info` | `d93f0b` | 信息不完整或格式不符，需补充 |
+| `invited` | `8250df` | 已发出组织邀请或已是成员 |
 
 创建命令：
 
@@ -146,6 +171,9 @@ for repo in <仓库1> <仓库2>; do
   gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" \
     -f name="needs-info" -f color="d93f0b" \
     -f description="信息不完整或格式不符，需补充"
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" \
+    -f name="invited" -f color="8250df" \
+    -f description="已发出组织邀请或已是成员"
 done
 ```
 
@@ -156,6 +184,7 @@ foreach ($repo in @('<仓库1>','<仓库2>')) {
   gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="triage" -f color="fbca04" -f description="待分类，等待维护者评估优先级与归属"
   gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="membership" -f color="0e8a16" -f description="加入社团申请与成员登记"
   gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="needs-info" -f color="d93f0b" -f description="信息不完整或格式不符，需补充"
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="invited" -f color="8250df" -f description="已发出组织邀请或已是成员"
 }
 ```
 
@@ -189,12 +218,13 @@ gh api -X PUT "repos/NingXia-XinQiCyberClub/<仓库>/branches/main/protection" \
 ### 6.5 检查项汇总
 
 - [ ] `.github/ISSUE_TEMPLATE/` 目录存在，且包含 `config.yml`
-- [ ] `triage`、`membership`、`needs-info` 标签已创建
+- [ ] `triage`、`membership`、`needs-info`、`invited` 标签已创建
 - [ ] 合并方式仅保留 Squash，且合并后自动删除分支
 - [ ] `main` 分支保护已启用
 - [ ] Discussions 是否需开启（教程与配置类仓库建议开启）
 - [ ] Wiki 是否需开启（默认关闭，文档统一用 Markdown 维护）
 - [ ] 仓库描述与 Topics 已填写
+- [ ] 若启用自动邀请，`.github` 仓库已配置 `ORG_INVITE_TOKEN` 与变量 `AUTO_INVITE`
 
 ### 6.6 验证接口的局限
 
