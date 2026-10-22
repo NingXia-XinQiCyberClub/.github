@@ -15,10 +15,10 @@
 | `SECURITY.md` | 安全缺陷上报政策 |
 | `SUPPORT.md` | 技术支持与提问规范 |
 | `PULL_REQUEST_TEMPLATE.md` | 组织级默认变更请求模板 |
-| `ISSUE_TEMPLATE/bug_report.yml` | 缺陷报告表单 |
-| `ISSUE_TEMPLATE/feature_request.yml` | 功能建议表单 |
-| `ISSUE_TEMPLATE/onboarding.yml` | 新成员入职登记表单 |
-| `ISSUE_TEMPLATE/config.yml` | 工单入口配置，将提问引导至 Discussions |
+| `.github/ISSUE_TEMPLATE/bug_report.yml` | 缺陷报告表单 |
+| `.github/ISSUE_TEMPLATE/feature_request.yml` | 功能建议表单 |
+| `.github/ISSUE_TEMPLATE/onboarding.yml` | 新成员入职登记表单 |
+| `.github/ISSUE_TEMPLATE/config.yml` | 工单入口配置，将提问引导至 Discussions |
 | `.github/workflows/welcome.yml` | 首次交互自动应答工作流 |
 
 ---
