@@ -23,6 +23,8 @@
 
 ## 二、新成员指引
 
+站点介绍与加入流程见 [ningxia-xinqicyberclub.github.io](https://ningxia-xinqicyberclub.github.io/)。
+
 新成员应按以下顺序完成入门流程，预计耗时 30 分钟。
 
 1. **阅读入门教程**
@@ -39,10 +41,11 @@
 
 | 仓库 | 用途 |
 | :-- | :-- |
-| [guide](https://github.com/NingXia-XinQiCyberClub/guide) | 入门教程正文，八章体系化内容 |
+| [NingXia-XinQiCyberClub.github.io](https://github.com/NingXia-XinQiCyberClub/NingXia-XinQiCyberClub.github.io) | 组织站点，社团介绍与加入流程 |
+| [guide](https://github.com/NingXia-XinQiCyberClub/guide) | 入门教程正文，九章体系化内容 |
 | [.github](https://github.com/NingXia-XinQiCyberClub/.github) | 组织级配置：主页、贡献指南、行为准则、安全政策、工单模板 |
 
-## 三、组织规范
+## 四、组织规范
 
 组织内所有仓库统一遵循以下文件：
 
@@ -51,7 +54,7 @@
 - [支持渠道](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/SUPPORT.md)：提问规范与响应时限
 - 技术讨论与问答统一在 [Discussions](https://github.com/NingXia-XinQiCyberClub/.github/discussions) 中进行，便于检索与知识沉淀
 
-## 四、成员招募
+## 五、成员招募
 
 招募对象为宁夏大学在校学生。有意加入者可通过 Discussions 提交申请，或直接联系组织负责人。
 
