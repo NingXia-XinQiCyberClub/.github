@@ -128,7 +128,7 @@ body:
           required: true
         - label: "步骤 6：在 Discussions 完成自我介绍 — 教程见[第 0 章 0.8 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#08-参与-discussions)"
           required: true
-        - label: "步骤 7：加入通讯群组并参加例会 — 教程见[第 0 章 0.9 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#09-加入通讯群组与例会)"
+        - label: "步骤 7：加入飞书群组并参加例会 — 教程见[第 0 章 0.9 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#09-加入飞书群组与例会)"
           required: false
 
   - type: textarea
