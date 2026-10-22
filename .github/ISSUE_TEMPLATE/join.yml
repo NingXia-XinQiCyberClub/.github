@@ -16,6 +16,8 @@ body:
 
         > GitHub 用户名无需填写。工单创建者即为申请人，系统自动记录账号信息。
 
+        > 两步验证不作强制要求，不在流程清单内。相关设置说明见[第 0 章 0.2 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#02-账号安全设置建议)。
+
   - type: markdown
     attributes:
       value: |
@@ -114,21 +116,19 @@ body:
     attributes:
       label: 流程清单
       options:
-        - label: "步骤 1：启用两步验证 — 教程见[第 0 章 0.2 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#02-启用两步验证)"
+        - label: "步骤 1：安装并配置 Git — 教程见[第 0 章 0.3 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#03-安装并配置-git)"
           required: true
-        - label: "步骤 2：安装并配置 Git — 教程见[第 0 章 0.3 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#03-安装并配置-git)"
+        - label: "步骤 2：配置认证方式（SSH 或 GitHub CLI）— 教程见[第 0 章 0.4 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#04-配置认证方式)"
           required: true
-        - label: "步骤 3：配置认证方式（SSH 或 GitHub CLI）— 教程见[第 0 章 0.4 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#04-配置认证方式)"
+        - label: "步骤 3：阅读贡献指南与行为准则 — 教程见[第 0 章 0.5 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#05-阅读规范文件)"
           required: true
-        - label: "步骤 4：阅读贡献指南与行为准则 — 教程见[第 0 章 0.5 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#05-阅读规范文件)"
+        - label: "步骤 4：克隆任一组织仓库 — 教程见[第 0 章 0.6 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#06-克隆仓库)"
           required: true
-        - label: "步骤 5：克隆任一组织仓库 — 教程见[第 0 章 0.6 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#06-克隆仓库)"
+        - label: "步骤 5：完成首次变更请求 — 教程见[第 0 章 0.7 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#07-完成首次变更请求)"
           required: true
-        - label: "步骤 6：完成首次变更请求 — 教程见[第 0 章 0.7 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#07-完成首次变更请求)"
+        - label: "步骤 6：在 Discussions 完成自我介绍 — 教程见[第 0 章 0.8 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#08-参与-discussions)"
           required: true
-        - label: "步骤 7：在 Discussions 完成自我介绍 — 教程见[第 0 章 0.8 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#08-参与-discussions)"
-          required: true
-        - label: "步骤 8：加入通讯群组并参加例会 — 教程见[第 0 章 0.9 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#09-加入通讯群组与例会)"
+        - label: "步骤 7：加入通讯群组并参加例会 — 教程见[第 0 章 0.9 节](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md#09-加入通讯群组与例会)"
           required: false
 
   - type: textarea
