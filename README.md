@@ -85,3 +85,122 @@ git push -u origin docs/<变更说明>
 ### 5.3 入门任务
 
 `guide` 仓库中标有 `good first issue` 的工单构成新成员入门任务集，详见该仓库 README 的「入门任务」一节。任务完成后由维护者评审合并，作为首次变更请求的实践。
+
+---
+
+## 六、新建仓库检查清单
+
+新建仓库后，须按以下清单逐项配置。本节记录已出现过的配置错误，避免重复发生。
+
+### 6.1 模板目录位置
+
+工单模板与配置必须位于**仓库内的 `.github/ISSUE_TEMPLATE/` 目录**，不得放在仓库根目录的 `ISSUE_TEMPLATE/`。
+
+```
+<仓库>/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.yml
+│   │   ├── config.yml
+│   │   └── ...
+│   └── workflows/
+└── README.md
+```
+
+位置错误的表现：访问 `?template=<名称>.yml` 时回落到空白工单编辑器，`config.yml` 中的 `blank_issues_enabled: false` 不生效。
+
+注意本仓库名为 `.github`，其模板路径为 `.github/.github/ISSUE_TEMPLATE/`，并非根目录 `ISSUE_TEMPLATE/`。
+
+### 6.2 标签创建
+
+模板 `labels` 字段声明的标签，必须在**当前仓库**中存在，否则提交后标签不会自动附加。
+
+GitHub 默认提供的标签：
+
+```
+accessibility  bug  documentation  duplicate  enhancement
+good first issue  help wanted  invalid  question  wontfix
+```
+
+组织内模板额外依赖以下**非默认**标签，每个新建仓库均须手动创建：
+
+| 标签 | 建议颜色 | 用途 |
+| :-- | :-- | :-- |
+| `triage` | `fbca04` | 待分类，等待维护者评估优先级与归属 |
+| `onboarding` | `0e8a16` | 新成员入职流程相关 |
+
+创建命令：
+
+```bash
+for repo in <仓库1> <仓库2>; do
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" \
+    -f name="triage" -f color="fbca04" \
+    -f description="待分类，等待维护者评估优先级与归属"
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" \
+    -f name="onboarding" -f color="0e8a16" \
+    -f description="新成员入职流程相关"
+done
+```
+
+PowerShell 等价写法：
+
+```powershell
+foreach ($repo in @('<仓库1>','<仓库2>')) {
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="triage" -f color="fbca04" -f description="待分类，等待维护者评估优先级与归属"
+  gh api -X POST "repos/NingXia-XinQiCyberClub/$repo/labels" -f name="onboarding" -f color="0e8a16" -f description="新成员入职流程相关"
+}
+```
+
+### 6.3 合并策略
+
+组织内仓库统一采用 Squash 合并，保持 `main` 线性历史：
+
+```bash
+gh api -X PATCH "repos/NingXia-XinQiCyberClub/<仓库>" \
+  -F allow_squash_merge=true \
+  -F allow_merge_commit=false \
+  -F allow_rebase_merge=false \
+  -F delete_branch_on_merge=true
+```
+
+### 6.4 分支保护
+
+`main` 分支须启用保护，要求至少 1 名评审人通过：
+
+```bash
+gh api -X PUT "repos/NingXia-XinQiCyberClub/<仓库>/branches/main/protection" \
+  -F "required_status_checks=null" \
+  -F "enforce_admins=false" \
+  -F "required_pull_request_reviews[required_approving_review_count]=1" \
+  -F "required_pull_request_reviews[dismiss_stale_reviews]=true" \
+  -F "restrictions=null" \
+  -F "allow_force_pushes=false" \
+  -F "allow_deletions=false"
+```
+
+### 6.5 检查项汇总
+
+- [ ] `.github/ISSUE_TEMPLATE/` 目录存在，且包含 `config.yml`
+- [ ] `triage` 与 `onboarding` 标签已创建
+- [ ] 合并方式仅保留 Squash，且合并后自动删除分支
+- [ ] `main` 分支保护已启用
+- [ ] Discussions 是否需开启（教程与配置类仓库建议开启）
+- [ ] Wiki 是否需开启（默认关闭，文档统一用 Markdown 维护）
+- [ ] 仓库描述与 Topics 已填写
+
+### 6.6 验证接口的局限
+
+判断模板是否生效时，以下接口**不可靠**：
+
+| 接口 | 局限 |
+| :-- | :-- |
+| `GET /repos/{owner}/{repo}/community/profile` | `issue_template` 字段仅反映旧版单文件模板，YAML 表单返回 `null` |
+| GraphQL `repository.issueTemplates` | 仅返回旧版 `.md` 模板，YAML 表单不出现 |
+
+可靠验证方式为直接访问：
+
+```
+https://github.com/NingXia-XinQiCyberClub/<仓库>/issues/new/choose
+```
+
+页面应列出各表单选项。若模板刚提交，GitHub 存在短暂缓存，可等待约 1 分钟后重试。
