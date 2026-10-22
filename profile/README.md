@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="./logo.png" width="120" alt="鑫启网安社团">
+<img src="./logo.png" width="120" alt="宁夏大学鑫启网安俱乐部">
 
-# 鑫启网安社团
+# 宁夏大学鑫启网安俱乐部
 
 **XinQi Cyber Club** · 宁夏大学
 
