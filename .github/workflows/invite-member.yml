@@ -15,6 +15,10 @@ name: 加入申请自动邀请
 #   默认开启。仅当显式设为 off 时整条工作流跳过，不打标签、不发评论、不报错。
 #     关闭：gh variable set AUTO_INVITE --body off --repo NingXia-XinQiCyberClub/.github
 #     开启：gh variable set AUTO_INVITE --body on  --repo NingXia-XinQiCyberClub/.github
+#
+# 新成员公告：邀请成功发出后，向招新群（FEISHU_WEBHOOK_RECRUIT，未配置则发主群）
+#   发一条「新成员加入」卡片。已是成员、已有待接受邀请、邀请失败三种情形不公告。
+#   未配置机器人地址时静默跳过，不影响邀请本身。
 
 on:
   issues:
@@ -35,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 校验并邀请
+        id: invite
         uses: actions/github-script@v7
         env:
           ORG_INVITE_TOKEN: ${{ secrets.ORG_INVITE_TOKEN }}
@@ -197,6 +202,8 @@ jobs:
                 '本工作流不修改现有成员的角色。',
               ].join('\n'));
               await addLabel('invited');
+              core.setOutput('status', 'already_member');
+              core.setOutput('role', role || 'member');
               core.info(`已是成员，跳过：${author.login}（${role}）`);
               return;
             }
@@ -269,6 +276,8 @@ jobs:
               await github.rest.issues.update({
                 owner, repo, issue_number, state: 'closed', state_reason: 'completed',
               });
+              core.setOutput('status', 'invited');
+              core.setOutput('role', 'Member');
               core.info(`已邀请：${author.login}`);
               return;
             }
@@ -284,6 +293,7 @@ jobs:
                 '请查收注册邮箱，或访问组织页面接受邀请。邀请 7 天后过期。',
               ].join('\n'));
               await addLabel('invited');
+              core.setOutput('status', 'pending');
               core.info(`已存在待处理邀请：${author.login}`);
               return;
             }
@@ -301,3 +311,22 @@ jobs:
               '请维护者手动处理，或在修复后添加任意标签触发重试。',
             ].join('\n'));
             core.setFailed(`邀请失败：${result.status}`);
+
+      # 邀请发出后向招新群公告新成员。仅 status=invited 时才发，其余状态脚本静默。
+      # 公告属附加动作，失败不回滚邀请、不阻塞工单关闭，因此两步都允许失败。
+      - name: 取得播报脚本
+        if: steps.invite.outputs.status == 'invited'
+        continue-on-error: true
+        uses: actions/checkout@v4
+
+      - name: 公告新成员
+        if: steps.invite.outputs.status == 'invited'
+        continue-on-error: true
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+          FEISHU_WEBHOOK_RECRUIT: ${{ secrets.FEISHU_WEBHOOK_RECRUIT }}
+          FEISHU_SCENE: invite_result
+          INVITE_LOGIN: ${{ github.event.issue.user.login }}
+          INVITE_STATUS: ${{ steps.invite.outputs.status }}
+        run: python3 scripts/feishu/notify.py

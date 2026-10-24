@@ -1,0 +1,51 @@
+name: 每周汇总
+
+# 每周一 08:00（北京时间）统计组织内一周的提交、变更请求、工单与活跃成员，
+# 以卡片形式发送到飞书群。也可在 Actions 页面手动触发。
+#
+# 需要配置的仓库密钥：
+#   FEISHU_WEBHOOK         群机器人地址，必填
+#   FEISHU_WEBHOOK_SECRET  机器人签名密钥，选填
+#   ORG_STATS_TOKEN        读取组织级数据的令牌，必填，见 README「飞书播报」一节
+# 仓库变量：
+#   WEEKLY_DAYS            统计天数，默认 7
+#   WEEKLY_SUMMARY         设为 off 时停止发送
+
+on:
+  schedule:
+    # UTC 00:00 对应北京时间 08:00。GitHub 定时任务在高峰期可能延迟数分钟至数十分钟。
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: feishu-weekly
+  cancel-in-progress: false
+
+jobs:
+  summary:
+    if: vars.WEEKLY_SUMMARY != 'off'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 取得统计脚本
+        # 用 raw 地址下载：本仓库为公开仓库，无需跨仓库令牌
+        run: |
+          for file in notify.py summary.py; do
+            curl -fsSL --retry 3 \
+              "https://raw.githubusercontent.com/NingXia-XinQiCyberClub/.github/main/scripts/feishu/$file" \
+              -o "$file"
+          done
+
+      - name: 生成并发送周报
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_CHAT_ID: ${{ secrets.FEISHU_CHAT_ID }}
+          ORG_STATS_TOKEN: ${{ secrets.ORG_STATS_TOKEN }}
+          ORG: ${{ github.repository_owner }}
+          DAYS: ${{ vars.WEEKLY_DAYS || '7' }}
+        run: python3 summary.py

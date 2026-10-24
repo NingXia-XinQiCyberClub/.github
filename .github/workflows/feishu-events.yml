@@ -1,0 +1,38 @@
+name: 飞书播报
+
+# 本仓库的事件播报入口。渲染逻辑与凭据传递集中在
+# .github/workflows/feishu-broadcast.yml，其他仓库复用同一份，
+# 模板见仓库根目录的 workflow-templates/。
+#
+# 需要在组织级 .github 仓库的 Settings → Secrets and variables → Actions 中配置：
+#   FEISHU_WEBHOOK          群机器人地址，必填
+#   FEISHU_WEBHOOK_SECRET   机器人签名密钥，开启签名校验时必填
+#   FEISHU_WEBHOOK_RECRUIT  招新群机器人地址，选填，不配置时加入申请并入主群
+# 缺失时工作流会跳过播报，不判定为失败。
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+    types: [opened, reopened, ready_for_review, converted_to_draft, closed]
+  issues:
+    types: [opened, reopened, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  broadcast:
+    # 组织机器人自己产生的推送不必再播报一次
+    if: github.actor != 'github-actions[bot]'
+    uses: NingXia-XinQiCyberClub/.github/.github/workflows/feishu-broadcast.yml@main
+    secrets:
+      FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+      FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+      FEISHU_WEBHOOK_RECRUIT: ${{ secrets.FEISHU_WEBHOOK_RECRUIT }}
+      FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+      FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+      FEISHU_CHAT_ID: ${{ secrets.FEISHU_CHAT_ID }}
+      FEISHU_CHAT_ID_RECRUIT: ${{ secrets.FEISHU_CHAT_ID_RECRUIT }}
