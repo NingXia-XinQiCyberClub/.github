@@ -1,0 +1,332 @@
+name: 加入申请自动邀请
+
+# 校验加入社团申请工单，通过后自动向申请人发出组织邀请（direct_member）。
+# 触发：工单开启、编辑、加标签。仅处理带 membership 标签的工单。
+#
+# 依赖 secret：ORG_INVITE_TOKEN
+#   默认 GITHUB_TOKEN 为仓库级安装令牌，无组织管理权限，调用邀请接口会返回 403。
+#   需在仓库 Settings → Secrets and variables → Actions 中配置个人访问令牌：
+#     经典 PAT，勾选 admin:org；或 GitHub App，授予 Organization → Members 读写。
+#
+# 权限说明：本工作流只授予 direct_member（Member），不授予 admin（Owner）。
+#   已存在的成员与所有者一律跳过，避免把现有所有者降级为 Member。
+#
+# 开关：仓库变量 AUTO_INVITE
+#   默认开启。仅当显式设为 off 时整条工作流跳过，不打标签、不发评论、不报错。
+#     关闭：gh variable set AUTO_INVITE --body off --repo NingXia-XinQiCyberClub/.github
+#     开启：gh variable set AUTO_INVITE --body on  --repo NingXia-XinQiCyberClub/.github
+#
+# 新成员公告：邀请成功发出后，向招新群（FEISHU_WEBHOOK_RECRUIT，未配置则发主群）
+#   发一条「新成员加入」卡片。已是成员、已有待接受邀请、邀请失败三种情形不公告。
+#   未配置机器人地址时静默跳过，不影响邀请本身。
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: invite-member-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  invite:
+    # AUTO_INVITE 未设置时视为开启；仅显式设为 off 才跳过
+    if: contains(github.event.issue.labels.*.name, 'membership') && vars.AUTO_INVITE != 'off'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 校验并邀请
+        id: invite
+        uses: actions/github-script@v7
+        env:
+          ORG_INVITE_TOKEN: ${{ secrets.ORG_INVITE_TOKEN }}
+        with:
+          script: |
+            const MARKER = '<!-- join-invite -->';
+            const ORG = context.repo.owner;
+            const issue = context.payload.issue;
+            const author = issue.user;
+            const body = issue.body || '';
+            const { owner, repo } = context.repo;
+            const issue_number = issue.number;
+
+            // ---- 读取与评论的工具函数 ----
+
+            // 表单生成的正文形如「### 字段名\n\n值」，按二级标题切分
+            function section(title) {
+              const re = new RegExp(`###[ \\t]*${title}[ \\t]*\\r?\\n([\\s\\S]*?)(?=\\r?\\n###[ \\t]|$)`);
+              const m = body.match(re);
+              return m ? m[1].trim() : '';
+            }
+
+            // 统计复选框，返回总计与已勾选数
+            function checkboxes(text) {
+              const items = [...text.matchAll(/^[ \t]*-[ \t]*\[(x|X| )\]/gm)];
+              return {
+                total: items.length,
+                checked: items.filter((m) => m[1].toLowerCase() === 'x').length,
+              };
+            }
+
+            // 判断流程清单中某一编号步骤是否已勾选
+            function stepChecked(n) {
+              const line = section('流程清单')
+                .split(/\r?\n/)
+                .find((l) => l.includes(`步骤 ${n}：`));
+              return Boolean(line && /\[[xX]\]/.test(line));
+            }
+
+            // 带标签的评论：已有则更新，避免重复刷屏
+            async function upsertComment(message) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number, per_page: 100,
+              });
+              const previous = comments.find((c) => c.body && c.body.includes(MARKER));
+              if (previous) {
+                await github.rest.issues.updateComment({
+                  owner, repo, comment_id: previous.id, body: message,
+                });
+                return;
+              }
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body: message,
+              });
+            }
+
+            async function addLabel(name) {
+              await github.rest.issues.addLabels({
+                owner, repo, issue_number, labels: [name],
+              }).catch((error) => core.warning(`添加标签 ${name} 失败：${error.message}`));
+            }
+
+            // 调用组织接口，返回状态码与解析后的响应体
+            async function orgApi(path, init = {}) {
+              const res = await fetch(`https://api.github.com${path}`, {
+                ...init,
+                headers: {
+                  Authorization: `Bearer ${process.env.ORG_INVITE_TOKEN}`,
+                  Accept: 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                  'User-Agent': 'xinqi-join-bot',
+                  ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+                },
+              });
+              const text = await res.text();
+              let data = null;
+              try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+              return { status: res.status, data };
+            }
+
+            // ---- 前置检查 ----
+
+            if (author.type === 'Bot') {
+              core.info(`机器人账号，跳过：${author.login}`);
+              return;
+            }
+
+            if (!process.env.ORG_INVITE_TOKEN) {
+              await upsertComment([
+                MARKER,
+                '### 自动邀请未执行',
+                '',
+                '仓库未配置 `ORG_INVITE_TOKEN`，无法调用组织邀请接口。',
+                '',
+                '维护者须在 Settings → Secrets and variables → Actions 中添加该密钥，',
+                '值为具备 `admin:org` 范围（或 GitHub App 的 Members 读写）的令牌。',
+              ].join('\n'));
+              core.setFailed('缺少 secret ORG_INVITE_TOKEN');
+              return;
+            }
+
+            // ---- 表单字段校验 ----
+
+            const realName = section('中文姓名');
+            const studentId = section('学号');
+            const grade = section('年级');
+            const interest = section('研究兴趣');
+            const agreement = checkboxes(section('承诺'));
+            const steps = [1, 2, 3, 4, 5, 6]; // 步骤 7 为可选，不计入
+
+            const problems = [];
+            if (!realName) problems.push('**中文姓名** 未填写');
+            if (!/^\d{11}$/.test(studentId)) {
+              problems.push(
+                studentId ? `**学号** 格式不符：\`${studentId}\`` : '**学号** 未填写',
+              );
+            }
+            if (!grade) problems.push('**年级** 未选择');
+            if (!interest) problems.push('**研究兴趣** 未选择');
+
+            const missingSteps = steps.filter((n) => !stepChecked(n));
+            if (missingSteps.length > 0) {
+              problems.push(`**流程清单** 未勾选步骤：${missingSteps.join('、')}（步骤 7 可选）`);
+            }
+            if (agreement.checked < agreement.total) {
+              problems.push(`**承诺事项** 未全部勾选（${agreement.checked}/${agreement.total}）`);
+            }
+
+            if (problems.length > 0) {
+              await upsertComment([
+                MARKER,
+                '### 申请信息校验未通过',
+                '',
+                '以下条目需补充或修正：',
+                '',
+                ...problems.map((p) => `- ${p}`),
+                '',
+                '请点击右上角 **Edit** 修改工单正文，保存后系统将自动重新校验。',
+                '',
+                '> 学号须为 **11 位数字**，例如 `12024242193`。',
+                '> 流程清单须按顺序实际完成后再勾选，未完成即勾选视为无效申请。',
+              ].join('\n'));
+              await addLabel('needs-info');
+              core.warning(`校验未通过：${problems.length} 项`);
+              return;
+            }
+
+            // ---- 成员现状检查（关键：不降级现有成员与所有者）----
+
+            const existing = await orgApi(`/orgs/${ORG}/memberships/${author.login}`);
+
+            if (existing.status === 200) {
+              const role = existing.data && existing.data.role;
+              await upsertComment([
+                MARKER,
+                '### 已是组织成员',
+                '',
+                `账号 \`${author.login}\` 已在组织中，当前角色为 **${role}**，无需重新邀请。`,
+                '',
+                '本工作流不修改现有成员的角色。',
+              ].join('\n'));
+              await addLabel('invited');
+              core.setOutput('status', 'already_member');
+              core.setOutput('role', role || 'member');
+              core.info(`已是成员，跳过：${author.login}（${role}）`);
+              return;
+            }
+
+            if (existing.status === 401) {
+              await upsertComment([
+                MARKER,
+                '### 自动邀请失败',
+                '',
+                '组织接口返回 401，`ORG_INVITE_TOKEN` 无效或已过期。',
+                '',
+                '请维护者更新该密钥后，在工单内添加任意标签触发重试。',
+              ].join('\n'));
+              core.setFailed('ORG_INVITE_TOKEN 无效');
+              return;
+            }
+
+            if (existing.status === 404) {
+              // 404 有两种可能：尚未加入，或令牌无权限读取。先确认令牌本身可用。
+              const probe = await orgApi(`/orgs/${ORG}`);
+              if (probe.status !== 200) {
+                await upsertComment([
+                  MARKER,
+                  '### 自动邀请失败',
+                  '',
+                  `读取组织信息返回 ${probe.status}，令牌缺少组织管理权限。`,
+                  '',
+                  '维护者须为 `ORG_INVITE_TOKEN` 授予 `admin:org` 范围（或 GitHub App 的 Members 读写）。',
+                ].join('\n'));
+                core.setFailed(`令牌权限不足：${probe.status}`);
+                return;
+              }
+            } else if (existing.status !== 404) {
+              await upsertComment([
+                MARKER,
+                '### 自动邀请失败',
+                '',
+                `查询成员状态返回 ${existing.status}，未执行邀请。`,
+              ].join('\n'));
+              core.setFailed(`查询成员失败：${existing.status}`);
+              return;
+            }
+
+            // ---- 发出邀请 ----
+
+            const result = await orgApi(`/orgs/${ORG}/memberships/${author.login}`, {
+              method: 'PUT',
+              body: JSON.stringify({ role: 'direct_member' }),
+            });
+
+            if (result.status === 200 || result.status === 201) {
+              await upsertComment([
+                MARKER,
+                '### 已发出组织邀请',
+                '',
+                `申请信息校验通过，已向 \`${author.login}\` 发出 **Member** 权限的组织邀请。`,
+                '',
+                '请按以下步骤完成：',
+                '',
+                '1. 查收 GitHub 注册邮箱的邀请邮件，或访问',
+                '   [组织主页](https://github.com/' + ORG + ') 接受待处理邀请',
+                '2. 邀请 **7 天后过期**，逾期需在本工单内回复说明，由维护者重新发出',
+                '3. 接受后默认获得公开仓库的 **只读** 权限，私有仓库需单独申请',
+                '',
+                '后续请按[第 0 章](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md)完成入门任务。',
+                '',
+                '> 邀请未送达时，先检查邮箱与垃圾邮件目录，再访问组织页面确认是否存在待处理邀请。',
+              ].join('\n'));
+              await addLabel('invited');
+              await github.rest.issues.update({
+                owner, repo, issue_number, state: 'closed', state_reason: 'completed',
+              });
+              core.setOutput('status', 'invited');
+              core.setOutput('role', 'Member');
+              core.info(`已邀请：${author.login}`);
+              return;
+            }
+
+            if (result.status === 422) {
+              // 422 通常表示已有待处理邀请，属正常状态
+              await upsertComment([
+                MARKER,
+                '### 邀请已存在',
+                '',
+                `\`${author.login}\` 已有待处理的组织邀请，无需重复发送。`,
+                '',
+                '请查收注册邮箱，或访问组织页面接受邀请。邀请 7 天后过期。',
+              ].join('\n'));
+              await addLabel('invited');
+              core.setOutput('status', 'pending');
+              core.info(`已存在待处理邀请：${author.login}`);
+              return;
+            }
+
+            await upsertComment([
+              MARKER,
+              '### 自动邀请失败',
+              '',
+              `邀请接口返回 ${result.status}，未完成邀请。`,
+              '',
+              '```json',
+              JSON.stringify(result.data, null, 2).slice(0, 800),
+              '```',
+              '',
+              '请维护者手动处理，或在修复后添加任意标签触发重试。',
+            ].join('\n'));
+            core.setFailed(`邀请失败：${result.status}`);
+
+      # 邀请发出后向招新群公告新成员。仅 status=invited 时才发，其余状态脚本静默。
+      # 公告属附加动作，失败不回滚邀请、不阻塞工单关闭，因此两步都允许失败。
+      - name: 取得播报脚本
+        if: steps.invite.outputs.status == 'invited'
+        continue-on-error: true
+        uses: actions/checkout@v4
+
+      - name: 公告新成员
+        if: steps.invite.outputs.status == 'invited'
+        continue-on-error: true
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+          FEISHU_WEBHOOK_RECRUIT: ${{ secrets.FEISHU_WEBHOOK_RECRUIT }}
+          FEISHU_SCENE: invite_result
+          INVITE_LOGIN: ${{ github.event.issue.user.login }}
+          INVITE_STATUS: ${{ steps.invite.outputs.status }}
+        run: python3 scripts/feishu/notify.py

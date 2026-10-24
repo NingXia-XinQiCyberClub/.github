@@ -1,0 +1,62 @@
+name: 飞书播报
+
+# 可复用工作流。各仓库在 .github/workflows/ 中放置一份调用文件即可，
+# 见 .github 仓库 README 的「飞书播报」一节。
+#
+# 事件判定与卡片渲染全部在 scripts/feishu/notify.py 中完成，
+# 本文件只负责取脚本与传递凭据，因此修改文案不必改动 YAML。
+
+on:
+  workflow_call:
+    secrets:
+      # 声明为非必填：两种投递方式都没有配置时脚本自行跳过并正常退出，不判失败
+      FEISHU_WEBHOOK:
+        required: false
+      FEISHU_WEBHOOK_SECRET:
+        required: false
+      # 招新群机器人，仅用于新成员公告；不配置时并入主群
+      FEISHU_WEBHOOK_RECRUIT:
+        required: false
+      # 备选：企业自建应用机器人，群设置里没有「自定义机器人」时改走这条
+      FEISHU_APP_ID:
+        required: false
+      FEISHU_APP_SECRET:
+        required: false
+      FEISHU_CHAT_ID:
+        required: false
+      FEISHU_CHAT_ID_RECRUIT:
+        required: false
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # 连续推送时不得取消前一次：每次 push 只携带本次新增的提交，取消即丢播报
+  group: feishu-${{ github.repository }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  broadcast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 取得播报脚本
+        # 用 raw 地址下载而非 checkout：跨仓库 checkout 需要额外令牌，
+        # 而本仓库为公开仓库，raw 地址无鉴权即可读取，也不落任何凭据。
+        run: |
+          curl -fsSL --retry 3 \
+            https://raw.githubusercontent.com/NingXia-XinQiCyberClub/.github/main/scripts/feishu/notify.py \
+            -o notify.py
+
+      - name: 发送播报卡片
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+          FEISHU_WEBHOOK_RECRUIT: ${{ secrets.FEISHU_WEBHOOK_RECRUIT }}
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_CHAT_ID: ${{ secrets.FEISHU_CHAT_ID }}
+          FEISHU_CHAT_ID_RECRUIT: ${{ secrets.FEISHU_CHAT_ID_RECRUIT }}
+          MAX_COMMITS: '5'
+          SKIP_SQUASH_ONLY: 'true'
+        run: python3 notify.py

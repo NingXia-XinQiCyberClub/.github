@@ -1,0 +1,40 @@
+name: 飞书播报
+
+# 把本仓库的提交、变更请求与工单播报到飞书群。
+# 渲染逻辑在 NingXia-XinQiCyberClub/.github 仓库的 scripts/feishu/notify.py，
+# 本文件只负责触发。
+#
+# 凭据：优先使用组织级 Secrets（Settings → Secrets → Actions，可见范围选全部仓库），
+# 也可在本仓库单独配置同名项。两种投递方式择一，详见 .github 仓库 README 第 7.3 节：
+#   A. 群自定义机器人：FEISHU_WEBHOOK（开签名校验时再加 FEISHU_WEBHOOK_SECRET）
+#   B. 企业自建应用：FEISHU_APP_ID + FEISHU_APP_SECRET + FEISHU_CHAT_ID
+# 都未配置时工作流跳过播报，不判定为失败。
+#
+# 来自分叉仓库的变更请求拿不到密钥，播报会自动失效，不影响评审流程。
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+    types: [opened, reopened, ready_for_review, converted_to_draft, closed]
+  issues:
+    types: [opened, reopened, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  broadcast:
+    # 机器人自身操作触发的推送不再重复播报
+    if: github.actor != 'github-actions[bot]'
+    uses: NingXia-XinQiCyberClub/.github/.github/workflows/feishu-broadcast.yml@main
+    secrets:
+      FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+      FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+      FEISHU_WEBHOOK_RECRUIT: ${{ secrets.FEISHU_WEBHOOK_RECRUIT }}
+      FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+      FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+      FEISHU_CHAT_ID: ${{ secrets.FEISHU_CHAT_ID }}
+      FEISHU_CHAT_ID_RECRUIT: ${{ secrets.FEISHU_CHAT_ID_RECRUIT }}

@@ -1,0 +1,7 @@
+{
+  "name": "飞书播报",
+  "description": "把提交、变更请求与工单播报到飞书群，凭据由组织级 Secrets 提供。",
+  "iconName": "octicon bell",
+  "categories": ["Automation", "Monitoring"],
+  "filePatterns": ["^.github/"]
+}
