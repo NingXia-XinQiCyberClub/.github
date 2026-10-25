@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""每周汇总：统计组织内一周的提交、变更请求、工单与成员活跃度，生成播报卡片。
+"""每周汇总：统计组织内一周的提交、变更请求、工单、讨论与成员活跃度，生成播报卡片。
 
-由 weekly-summary.yml 定时调用，也可以本地运行：
+由 weekly-summary.yml 定时调用（北京时间周一 00:00），也可以本地运行：
 
     set ORG_STATS_TOKEN=github_pat_xxx
     python summary.py --org NingXia-XinQiCyberClub --dry-run
 
-统计口径默认取最近 7 天，可用 --days 调整。全部数据来自 GitHub REST API，
-令牌只从环境变量读取，不打印、不落盘。
+统计口径默认取最近 7 个完整自然日（截至昨天），可用 --days 调整。全部数据来自
+GitHub REST 与 GraphQL API，令牌只从环境变量读取，不打印、不落盘。
 """
 
 from __future__ import annotations
@@ -100,9 +100,119 @@ class Client:
             return None
         return int(data["total_count"])
 
+    def graphql(self, query: str, variables: dict | None = None):
+        """调用 GraphQL，讨论区没有 REST 接口。"""
+        if not self.budget.spend():
+            self.warn("接口额度不足，部分指标已跳过")
+            return None
+        if not self.token:
+            self.warn("讨论区统计需要令牌，已跳过")
+            return None
+
+        payload = json.dumps({"query": query, "variables": variables or {}}).encode("utf-8")
+        request = urllib.request.Request(
+            f"{API}/graphql",
+            data=payload,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+                "User-Agent": USER_AGENT,
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                result = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as error:
+            self.warn(f"讨论区查询返回 {error.code}")
+            return None
+        except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as error:
+            self.warn(f"讨论区查询失败：{error}")
+            return None
+
+        if result.get("errors"):
+            first = (result["errors"] or [{}])[0].get("message", "")
+            self.warn(f"讨论区查询报错：{plain_trim(first, 60)}")
+            return None
+        return result.get("data")
+
+
+DISCUSSION_QUERY = """
+query($q: String!) {
+  search(query: $q, type: DISCUSSION, first: 30) {
+    discussionCount
+    nodes {
+      ... on Discussion {
+        number
+        title
+        url
+        createdAt
+        author { login }
+        category { name }
+        comments { totalCount }
+        answer { url }
+      }
+    }
+  }
+}
+"""
+
+
+def discussions(client: "Client", org: str, since: str, until: str) -> dict:
+    """统计一周内的新讨论与未答复讨论。失败时返回空统计并记一条警告。"""
+    result = {"opened": None, "items": [], "unanswered": None}
+
+    data = client.graphql(
+        DISCUSSION_QUERY, {"q": f"org:{org} created:{since}..{until}"}
+    )
+    if data is None:
+        return result
+
+    search = (data.get("search") or {}) if isinstance(data, dict) else {}
+    result["opened"] = search.get("discussionCount")
+    for node in search.get("nodes") or []:
+        if not isinstance(node, dict) or not node.get("url"):
+            continue
+        result["items"].append(
+            {
+                "number": node.get("number"),
+                "title": node.get("title", ""),
+                "url": node.get("url", ""),
+                "author": ((node.get("author") or {}) or {}).get("login", ""),
+                "category": ((node.get("category") or {}) or {}).get("name", ""),
+                "comments": ((node.get("comments") or {}) or {}).get("totalCount", 0),
+                "answered": bool(node.get("answer")),
+            }
+        )
+
+    pending = client.graphql(
+        DISCUSSION_QUERY, {"q": f"org:{org} is:open no:answer"}
+    )
+    if isinstance(pending, dict):
+        result["unanswered"] = ((pending.get("search") or {}) or {}).get("discussionCount")
+
+    return result
+
 
 def day(offset: int) -> str:
     return (datetime.now(CST) - timedelta(days=offset)).strftime("%Y-%m-%d")
+
+
+def utc_stamp(date_text: str) -> str:
+    """把北京时间日期 00:00 换成 GitHub 接口要的 UTC 时间戳。
+
+    GitHub 的 since/until 参数一律按 UTC 解析，直接传北京日期会整体偏移 8 小时，
+    跨零点的提交就会落到错误的一周里。
+    """
+    moment = datetime.strptime(date_text, "%Y-%m-%d").replace(tzinfo=CST)
+    return moment.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def next_day(date_text: str) -> str:
+    moment = datetime.strptime(date_text, "%Y-%m-%d") + timedelta(days=1)
+    return moment.strftime("%Y-%m-%d")
 
 
 def parse_time(value: str | None) -> datetime:
@@ -119,8 +229,12 @@ def repo_of(item: dict) -> str:
 
 
 def collect(client: Client, org: str, days: int) -> dict:
-    since, until = day(days), day(0)
+    # 统计到今天为止的前 days 个完整自然日。周报在北京时间周一 00:00 运行，
+    # 此时 day(1) 正是刚结束的周日，区间恰好覆盖上一个完整自然周。
+    since, until = day(days), day(1)
     window = f"{since}..{until}"
+    since_stamp = utc_stamp(since)
+    until_stamp = utc_stamp(next_day(until))
 
     stats = {
         "since": since,
@@ -133,6 +247,7 @@ def collect(client: Client, org: str, days: int) -> dict:
         "issue": {"opened": None, "closed": None, "open": None},
         "pending": [],
         "untriaged": [],
+        "discussion": {"opened": None, "items": [], "unanswered": None},
     }
 
     repos = client.get(
@@ -155,7 +270,8 @@ def collect(client: Client, org: str, days: int) -> dict:
             data = client.get(
                 f"/repos/{org}/{name}/commits",
                 {
-                    "since": f"{since}T00:00:00Z",
+                    "since": since_stamp,
+                    "until": until_stamp,
                     "sha": branch,
                     "per_page": 100,
                     "page": page,
@@ -215,16 +331,19 @@ def collect(client: Client, org: str, days: int) -> dict:
             }
         )
 
+    stats["discussion"] = discussions(client, org, since, until)
+
     return stats
 
 
 def is_quiet(stats: dict) -> bool:
-    """三项指标都必须成功统计且为 0，才算真的没有活动。"""
+    """主要指标都必须成功统计且为 0，才算真的没有活动。"""
     values = [
         stats["commit_total"],
         stats["pr"]["opened"],
         stats["pr"]["merged"],
         stats["issue"]["opened"],
+        (stats.get("discussion") or {}).get("opened"),
     ]
     return all(value == 0 for value in values)
 
@@ -238,12 +357,17 @@ def build_message(stats: dict, warnings: list[str], note: str = "") -> dict:
     span = f"{since} 至 {until}（{days} 天）"
 
     if is_quiet(stats):
-        blocks = [md_block(f"**统计区间** {span}\n**本周动态** 无提交、无变更请求、无新工单")]
+        blocks = [
+            md_block(
+                f"**统计区间** {span}\n**本周动态** 无提交、无变更请求、无新工单、无新讨论"
+            )
+        ]
         if warnings:
             blocks.append(plain_block("统计提示：" + "；".join(warnings[:3])))
         return build_card("周报 · 无活动", "grey", blocks)
 
     pr, issue = stats["pr"], stats["issue"]
+    disc = stats.get("discussion") or {}
     lines = [f"**统计区间** {span}"]
     lines.append(
         f"**提交** {stats['commit_total']} 次 / {len(stats['commits'])} 个仓库"
@@ -258,6 +382,12 @@ def build_message(stats: dict, warnings: list[str], note: str = "") -> dict:
             o=fmt(issue["opened"]), c=fmt(issue["closed"]), p=fmt(issue["open"])
         )
     )
+    if disc:
+        lines.append(
+            "**讨论** 新开 {o} · 尚无答案 {u}".format(
+                o=fmt(disc.get("opened")), u=fmt(disc.get("unanswered"))
+            )
+        )
 
     blocks = [md_block("\n".join(lines))]
 
@@ -291,6 +421,21 @@ def build_message(stats: dict, warnings: list[str], note: str = "") -> dict:
             f"[#{item['number']}]({item['url']}) {md_escape(item['title'], 60)}" for item in shown
         )
         rest = len(stats["untriaged"]) - len(shown)
+        if rest > 0:
+            text += f"\n… 另有 {rest} 条"
+        blocks.append(md_block(text))
+
+    disc_items = (stats.get("discussion") or {}).get("items") or []
+    if disc_items:
+        blocks.append({"tag": "hr"})
+        shown = disc_items[:5]
+        text = "**本周讨论**\n" + "\n".join(
+            f"[#{item['number']}]({item['url']}) {md_escape(item['title'], 60)}"
+            f"（{md_escape(item['author'] or '未知', 24)}，"
+            f"{item['comments']} 条回复{'，已解决' if item['answered'] else ''}）"
+            for item in shown
+        )
+        rest = len(disc_items) - len(shown)
         if rest > 0:
             text += f"\n… 另有 {rest} 条"
         blocks.append(md_block(text))

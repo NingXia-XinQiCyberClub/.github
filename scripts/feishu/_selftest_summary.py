@@ -15,6 +15,7 @@ from _selftest import check_lark_md, walk_lark_md, walk_urls  # noqa: E402
 
 EMPTY_PR = {"opened": 0, "merged": 0, "closed": 0, "open": 0}
 EMPTY_ISSUE = {"opened": 0, "closed": 0, "open": 0}
+EMPTY_DISC = {"opened": 0, "items": [], "unanswered": 0}
 
 
 def base_stats(**overrides):
@@ -27,6 +28,21 @@ def base_stats(**overrides):
         "commit_total": 13,
         "pr": {"opened": 3, "merged": 2, "closed": 1, "open": 5},
         "issue": {"opened": 4, "closed": 2, "open": 7},
+        "discussion": {
+            "opened": 2,
+            "unanswered": 1,
+            "items": [
+                {
+                    "number": 5,
+                    "title": "新人如何入门 Web 安全？",
+                    "url": "https://github.com/NingXia-XinQiCyberClub/guide/discussions/5",
+                    "author": "wangwu",
+                    "category": "问答",
+                    "comments": 4,
+                    "answered": True,
+                }
+            ],
+        },
         "pending": [
             {
                 "title": "docs: 补充 0.9 节",
@@ -52,14 +68,29 @@ CASES = [
     ("正常一周", base_stats(), [], ""),
     (
         "无活动",
-        base_stats(commits={}, members={}, commit_total=0, pr=EMPTY_PR, issue=EMPTY_ISSUE, pending=[], untriaged=[]),
+        base_stats(
+            commits={},
+            members={},
+            commit_total=0,
+            pr=EMPTY_PR,
+            issue=EMPTY_ISSUE,
+            discussion=EMPTY_DISC,
+            pending=[],
+            untriaged=[],
+        ),
         [],
         "",
     ),
     (
         "统计失败不算无活动",
-        base_stats(commit_total=0, commits={}, members={}, pr={"opened": None, "merged": None, "closed": None, "open": None}, issue=EMPTY_ISSUE, pending=[], untriaged=[]),
+        base_stats(commit_total=0, commits={}, members={}, pr={"opened": None, "merged": None, "closed": None, "open": None}, issue=EMPTY_ISSUE, discussion=EMPTY_DISC, pending=[], untriaged=[]),
         ["/orgs/x/repos 返回 403（令牌权限不足或失效）"],
+        "",
+    ),
+    (
+        "讨论区统计失败",
+        base_stats(discussion={"opened": None, "items": [], "unanswered": None}),
+        ["讨论区统计需要令牌，已跳过"],
         "",
     ),
     ("有积压", base_stats(), [], ""),
@@ -76,7 +107,24 @@ CASES = [
     ),
     (
         "恶意语法",
-        base_stats(untriaged=[{"title": "[点我](http://evil) **粗** `x`", "number": 2, "url": "https://github.com/a/b/issues/2"}]),
+        base_stats(
+            untriaged=[{"title": "[点我](http://evil) **粗** `x`", "number": 2, "url": "https://github.com/a/b/issues/2"}],
+            discussion={
+                "opened": 1,
+                "unanswered": 1,
+                "items": [
+                    {
+                        "number": 9,
+                        "title": "[点我](http://evil) ~~删~~",
+                        "url": "https://github.com/a/b/discussions/9",
+                        "author": "**坏**",
+                        "category": "问答",
+                        "comments": 0,
+                        "answered": False,
+                    }
+                ],
+            },
+        ),
         [],
         "",
     ),

@@ -24,7 +24,7 @@
 | `.github/workflows/invite-member.yml` | 加入申请校验通过后自动发出组织邀请工作流 |
 | `.github/workflows/feishu-broadcast.yml` | 飞书播报的可复用工作流，供各仓库调用 |
 | `.github/workflows/feishu-events.yml` | 本仓库的播报触发入口 |
-| `.github/workflows/weekly-summary.yml` | 每周一汇总组织动态并播报 |
+| `.github/workflows/weekly-summary.yml` | 每周汇总组织动态并播报（周一 00:00） |
 | `.github/workflows/welcome-reminder.yml` | 发现飞书群新成员并提醒填写加入工单 |
 | `scripts/feishu/notify.py` | 事件卡片渲染与飞书发送 |
 | `scripts/feishu/summary.py` | 周报统计与卡片生成 |
@@ -262,7 +262,7 @@ https://github.com/NingXia-XinQiCyberClub/<仓库>/issues/new/choose
 
 ## 七、飞书播报
 
-组织内的提交、变更请求与工单可播报到飞书群，每周一另发一份周报。播报只做通知，不参与任何审批或权限判定；播报失败不影响仓库的正常协作。
+组织内的提交、变更请求、工单与讨论区动态可播报到飞书群，每周一 00:00 另发一份周报。播报只做通知，不参与任何审批或权限判定；播报失败不影响仓库的正常协作。
 
 ### 7.1 工作原理
 
@@ -285,6 +285,8 @@ https://github.com/NingXia-XinQiCyberClub/<仓库>/issues/new/choose
 | `push` | 推送至任意分支，或推送 `v*` 标签 | 提交 · 仓库名 / 标签 · 仓库名 | 主群 |
 | `pull_request` | 新开、重开、转为待评审、转为草稿、关闭（含合入） | 变更请求已合入 · 仓库名 等 | 主群 |
 | `issues` | 新开、重开、关闭（入会工单除外） | 新开工单 · 仓库名 | 主群 |
+| `discussion` | 新开、重开、关闭、采纳答案 | 新开讨论 · 仓库名 等 | 主群 |
+| `discussion_comment` | 讨论区新增回复 | 讨论有新回复 · 仓库名 | 主群 |
 | 新成员加入 | `invite-member.yml` 校验通过并发出组织邀请 | 新成员加入 | 招新群 |
 
 入会工单的播报口径与其他工单不同：**申请提交时不播报，只在审核通过、组织邀请正式发出后公告一次**。理由是新成员信息（姓名、年级、学号）在未批准前属于待审材料，不宜在群里扩散；同时避免「申请一条、退回一条、再申请一条」造成刷屏。
@@ -302,6 +304,8 @@ https://github.com/NingXia-XinQiCyberClub/<仓库>/issues/new/choose
 3. `github-actions[bot]` 自身操作触发的推送不播报
 4. 来自分叉仓库的变更请求拿不到密钥，播报自动失效
 5. 删除分支的推送不播报
+6. 讨论回复的编辑与删除不播报，只播报新建；讨论的分类调整、加锁等维护动作同样不播报
+7. 讨论区事件只在该仓库开启了 Discussions 时产生。站点仓库未开启，因此只有 `.github` 与 `guide` 两个仓库会播报讨论
 
 ### 7.3 配置步骤
 
@@ -536,15 +540,18 @@ gh variable set WELCOME_REMINDER --body off --repo NingXia-XinQiCyberClub/.githu
 
 ### 7.4 周报
 
-`weekly-summary.yml` 每周一 08:00（北京时间）运行，统计最近 7 天的提交、变更请求与工单，并列出待评审请求与未分类工单。
+`weekly-summary.yml` 在周日与周一交接的 0 点（北京时间周一 00:00）运行，统计上一个完整周的提交、变更请求、工单、讨论区动态，并列出待评审请求、未分类工单与本周讨论。
 
 | 统计项 | 口径 |
 | :-- | :-- |
 | 提交 | 组织内公开仓库默认分支的提交数，按作者归类 |
 | 变更请求 | 新开 / 合入 / 关闭未合入 / 当前待处理 |
 | 工单 | 新开 / 关闭 / 当前待处理 |
+| 讨论 | 本周新开数 / 尚无答案数，并列出本周讨论（含回复数与是否已解决） |
 | 待评审 | 已开启、非草稿、无他人批准 |
 | 未分类 | 已开启且无标签 |
+
+讨论区没有 REST 接口，统计走 GraphQL，因此必须配置 `ORG_STATS_TOKEN`；未配置时卡片上只少这一行，其余指标照常。令牌需要 `discussions` 读取权限（只读仓库访问权限即可满足）。
 
 开关与参数：
 

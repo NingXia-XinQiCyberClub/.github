@@ -108,6 +108,34 @@ Web 安全,Pwn / 二进制
 """
 
 
+def discussion_payload(action="created", body="想问问大家平时用什么靶场练手？", answer=None):
+    return {
+        "action": action,
+        "repository": BASE_REPO,
+        "discussion": {
+            "number": 5,
+            "title": "新人如何入门 Web 安全？",
+            "body": body,
+            "state": "open",
+            "html_url": "https://github.com/NingXia-XinQiCyberClub/guide/discussions/5",
+            "user": {"login": "wangwu"},
+            "category": {"name": "问答"},
+            "answer_html_url": answer,
+        },
+    }
+
+
+def discussion_comment_payload(action="created"):
+    payload = discussion_payload("created")
+    payload["action"] = action
+    payload["comment"] = {
+        "body": "从[第 0 章](https://evil.example)开始，先**装好环境**。",
+        "html_url": "https://github.com/NingXia-XinQiCyberClub/guide/discussions/5#discussioncomment-1",
+        "user": {"login": "lisi"},
+    }
+    return payload
+
+
 CASES = [
     ("push 普通提交", "push", push_payload(["docs: 补充 0.9 节", "fix(login): 修正越界判断"])),
     ("push 多条提交", "push", push_payload([f"feat: 变更 {i}" for i in range(8)])),
@@ -120,6 +148,11 @@ CASES = [
     ("PR 同步标签（应忽略）", "pull_request", pr_payload("synchronize")),
     ("Issue 新开", "issues", issue_payload("opened", [])),
     ("入会工单（不在此处播报）", "issues", issue_payload("opened", ["membership"], JOIN_BODY)),
+    ("讨论新开", "discussion", discussion_payload()),
+    ("讨论已采纳答案", "discussion", discussion_payload("answered", answer="https://github.com/x/y")),
+    ("讨论含恶意正文", "discussion", discussion_payload(body="**加粗** [点我](http://evil) `x` <at id=all></at>")),
+    ("讨论回复", "discussion_comment", discussion_comment_payload()),
+    ("讨论回复编辑（应忽略）", "discussion_comment", discussion_comment_payload("edited")),
     ("手动测试", "workflow_dispatch", {}),
 ]
 
