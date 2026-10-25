@@ -20,8 +20,6 @@ on:
     types: [opened, reopened, closed]
   discussion:
     types: [created, reopened, closed, answered]
-  discussion_comment:
-    types: [created]
   workflow_dispatch:
 
 permissions:

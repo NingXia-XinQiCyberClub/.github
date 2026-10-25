@@ -286,35 +286,17 @@ def render_issue(payload: dict) -> dict | None:
 def render_discussion(payload: dict) -> dict | None:
     """讨论区动态。
 
-    GitHub 的 discussion 事件只在公开仓库触发。这里合并处理两类负载：
-    讨论本身（payload.discussion）与讨论下的回复（payload.comment）。
+    GitHub 的 discussion 事件只在开启了 Discussions 的仓库触发。
+    讨论下的回复刻意不播报：自我介绍一类的帖子每多一条回复就发一张卡片，
+    会把真正的代码动态挤掉。
     """
     action = payload.get("action", "")
     discussion = payload.get("discussion") or {}
-    comment = payload.get("comment") or {}
     repository = payload.get("repository") or {}
     short = (repository.get("full_name", "") or "仓库").split("/")[-1]
 
     if not discussion:
         return None
-
-    if comment:
-        # 讨论回复：只在新建时播报，编辑与删除不打扰
-        if action != "created":
-            return None
-        author = md_escape((comment.get("user") or {}).get("login", ""))
-        body = plain_trim(comment.get("body") or "", 220)
-        meta = [
-            f"**讨论** #{discussion.get('number')} {md_escape(discussion.get('title', ''), 70)}",
-            f"**回复者** {author}",
-        ]
-        blocks = [md_block("\n".join(meta))]
-        if body:
-            blocks.append({"tag": "hr"})
-            blocks.append(plain_block(body))
-        url = comment.get("html_url") or discussion.get("html_url", "")
-        buttons = [("查看回复", url)] if url else []
-        return build_card(f"讨论有新回复 · {short}", "blue", blocks, buttons)
 
     state = {
         "created": ("新开讨论", "green"),
@@ -445,7 +427,7 @@ def build_card_for(event_name: str, payload: dict) -> dict | None:
         return render_pull_request(payload)
     if event_name == "issues":
         return render_issue(payload)
-    if event_name in {"discussion", "discussion_comment"}:
+    if event_name == "discussion":
         return render_discussion(payload)
     if event_name == "invite_result":
         return render_invite_result(payload)

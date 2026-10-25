@@ -125,17 +125,6 @@ def discussion_payload(action="created", body="想问问大家平时用什么靶
     }
 
 
-def discussion_comment_payload(action="created"):
-    payload = discussion_payload("created")
-    payload["action"] = action
-    payload["comment"] = {
-        "body": "从[第 0 章](https://evil.example)开始，先**装好环境**。",
-        "html_url": "https://github.com/NingXia-XinQiCyberClub/guide/discussions/5#discussioncomment-1",
-        "user": {"login": "lisi"},
-    }
-    return payload
-
-
 CASES = [
     ("push 普通提交", "push", push_payload(["docs: 补充 0.9 节", "fix(login): 修正越界判断"])),
     ("push 多条提交", "push", push_payload([f"feat: 变更 {i}" for i in range(8)])),
@@ -151,8 +140,7 @@ CASES = [
     ("讨论新开", "discussion", discussion_payload()),
     ("讨论已采纳答案", "discussion", discussion_payload("answered", answer="https://github.com/x/y")),
     ("讨论含恶意正文", "discussion", discussion_payload(body="**加粗** [点我](http://evil) `x` <at id=all></at>")),
-    ("讨论回复", "discussion_comment", discussion_comment_payload()),
-    ("讨论回复编辑（应忽略）", "discussion_comment", discussion_comment_payload("edited")),
+    ("讨论维护动作（应忽略）", "discussion", discussion_payload("category_changed")),
     ("手动测试", "workflow_dispatch", {}),
 ]
 
