@@ -550,7 +550,7 @@ gh variable set WELCOME_REMINDER --body off --repo NingXia-XinQiCyberClub/.githu
 | 待评审 | 已开启、非草稿、无他人批准 |
 | 未分类 | 已开启且无标签 |
 
-讨论区没有 REST 接口，统计走 GraphQL，因此必须配置 `ORG_STATS_TOKEN`；未配置时卡片上只少这一行，其余指标照常。令牌需要 `discussions` 读取权限（只读仓库访问权限即可满足）。
+讨论区没有 REST 接口，统计走 GraphQL，匿名请求没有该权限；未配置 `ORG_STATS_TOKEN` 时退回 Actions 内置令牌，只能读到本仓库的讨论，跨仓库数据不完整（卡片底部会注明「使用默认令牌统计」）。令牌需要 `discussions` 读取权限，只读仓库访问权限即可满足。
 
 开关与参数：
 
