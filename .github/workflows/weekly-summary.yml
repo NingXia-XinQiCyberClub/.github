@@ -22,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  discussions: read
 
 concurrency:
   group: feishu-weekly
@@ -49,6 +50,9 @@ jobs:
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
           FEISHU_CHAT_ID: ${{ secrets.FEISHU_CHAT_ID }}
           ORG_STATS_TOKEN: ${{ secrets.ORG_STATS_TOKEN }}
+          # ORG_STATS_TOKEN 未配置时脚本退回内置令牌：讨论区只能走 GraphQL，
+          # 匿名请求没有该权限，内置令牌至少能读到本仓库与公开仓库的数据。
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ORG: ${{ github.repository_owner }}
           DAYS: ${{ vars.WEEKLY_DAYS || '7' }}
         run: python3 summary.py
