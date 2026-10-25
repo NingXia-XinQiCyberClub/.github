@@ -11,7 +11,10 @@ name: 新成员提醒
 # 成员快照保存在 feishu-state 分支的 feishu-members.json，不进 main。
 # 首次运行只记录名单不发提醒，避免把现有成员全部 @ 一遍。
 #
-# 开关：仓库变量 WELCOME_REMINDER，设为 off 时停用。
+# 默认关闭：仅在仓库变量 WELCOME_REMINDER 显式设为 on 时才运行。
+# 常规做法是改用群公告引导新人，见 README 第 7.3C 节。
+#
+# 停用时不产生任何 Actions 用量，因此保留定时表达式不会造成浪费。
 
 on:
   schedule:
@@ -28,7 +31,7 @@ concurrency:
 
 jobs:
   remind:
-    if: vars.WELCOME_REMINDER != 'off'
+    if: vars.WELCOME_REMINDER == 'on'
     runs-on: ubuntu-latest
     steps:
       - name: 取得脚本

@@ -459,13 +459,36 @@ Settings → 左侧「Secrets and variables」→「Actions」→「Secrets」�
 
 > 注意：方案 B 无法「托管」在任何第三方服务器上。应用凭证属于你们的企业，App Secret 等同于机器人的钥匙，只能存放于 GitHub Secrets。任何声称能替你托管并代持密钥的做法，都等于把发消息的权限交给了外部。
 
-### 7.3C 新成员提醒
+在配置以下任一项之前，先做一件零成本的事：**把入会指引写成群公告并置顶**。新人进群第一眼就能看到，不需要任何机器人、任何凭据。公告文案见 7.3C。
 
-新同学进飞书群后，往往不知道还要去 GitHub 填工单，结果一直看不到仓库。`welcome-reminder.yml` 每 10 分钟检查一次群成员名单，发现新人就在招新群 @ 他，附上工单链接。
+### 7.3C 新成员引导：默认用群公告
 
-**为什么必须用方案 B**：群自定义机器人只能往群里发消息，读不到成员名单，因此这个功能只支持企业自建应用，方案 A 的 webhook 做不到。
+新同学进飞书群后，往往不知道还要去 GitHub 填工单，结果一直看不到仓库。最省事的做法是在招新群写一条群公告，勾上「在群组置顶显示」——公告会一直挂在群顶部，后续入群的成员也能看到。
 
-**额外需要一步权限**：在 7.3B 第 3 步的权限列表里，除了 `im:message:send_as_bot`，再加一条 `im:chat.members:read`（获取群成员信息）。加完权限必须重新创建版本并发布，否则调用会返回 403。
+**操作**：招新群 → 右上角「···」→「设置」→「群管理」→「群公告」→ 编辑以下文案 → 勾选「在群组置顶显示」→ 发布。
+
+```
+欢迎加入宁夏大学鑫启网安俱乐部。
+
+进群后请完成三件事，才能查看组织仓库与参与赛事报名：
+
+一、填写加入工单
+https://github.com/NingXia-XinQiCyberClub/.github/issues/new?template=join.yml
+需填写真实姓名、11 位学号，并勾选流程清单与承诺事项。
+
+二、接受组织邀请
+工单审核通过后，GitHub 会向你的注册邮箱发送组织邀请，请在 7 天内点击接受。
+
+三、完成入门任务
+按教程第 0 章操作：https://github.com/NingXia-XinQiCyberClub/guide
+
+群昵称统一改为「姓名-年级」，格式如「张三-大二」。
+技术问题请提到 GitHub Discussions，不要在群里直接问，讨论结论同样归档到 Discussions。
+```
+
+公告的局限也很明确：它是**静态**的，不会 @ 到具体某个人，也不会因为谁没看完而提醒。但它有三个好处——不依赖任何凭证、不会漏、不会因为权限或接口变更而失效。
+
+**如果确实需要自动点名提醒**，`welcome-reminder.yml` 提供了可选实现，默认关闭。启用前提是走 7.3B 的企业自建应用，并额外开通 `im:chat.members:read`（获取群成员信息）权限；加完权限必须重新创建版本并发布，否则调用返回 403。
 
 **工作原理**：
 
@@ -495,17 +518,20 @@ Settings → 左侧「Secrets and variables」→「Actions」→「Secrets」�
 3. **发送失败不更新快照**。宁可下次重复检查，也不漏掉一个新人
 4. **退出的人静默移除**，不发任何消息
 5. **只在招新群提醒**。优先用 `FEISHU_CHAT_ID_RECRUIT`，未配置时用 `FEISHU_CHAT_ID`
+6. **默认关闭**。仅在仓库变量 `WELCOME_REMINDER` 显式设为 `on` 时才运行，未设置时整个工作流不触发，不产生任何 Actions 用量
 
 **开关**：
 
 ```bash
+gh variable set WELCOME_REMINDER --body on  --repo NingXia-XinQiCyberClub/.github   # 启用（默认关闭）
 gh variable set WELCOME_REMINDER --body off --repo NingXia-XinQiCyberClub/.github   # 停用
-gh variable set WELCOME_REMINDER --body on  --repo NingXia-XinQiCyberClub/.github   # 启用
 ```
 
 未配置应用凭证时，工作流会打印「未配置…跳过新成员提醒」并正常退出，不影响其他播报。
 
 **成本**：每 10 分钟一次，一天 144 次运行。GitHub 公开仓库的 Actions 免费额度不设上限，但如果组织开始按分钟计费，建议改成 `*/30 * * * *` 或每小时一次——新人等半小时才收到提醒，实际并不算慢。
+
+**结论**：先用群公告。群公告能覆盖八成场景，且不引入任何凭据；只有当公告确实被忽略、需要点名时，再开这条工作流。
 
 
 ### 7.4 周报
