@@ -155,10 +155,19 @@ import re
 # 本脚本自行生成的链接形式：[#12](https://github.com/...)，其余方括号一律视为未转义
 _LINK = re.compile(r"\[#[0-9]+\]\(https://github\.com/[^\s)]+\)")
 
+# 脚本自行生成的 @ 提醒，飞书语法为 <at id=ou_xxx></at>
+_MENTION = re.compile(r"<at id=ou_[A-Za-z0-9]+></at>")
 
-def check_lark_md(content):
-    """检查内容除自建的工单链接外，是否残留会破坏排版的未转义字符。"""
+
+def check_lark_md(content, allow=()):
+    """检查内容除脚本自建的链接与 @ 之外，是否残留会破坏排版的未转义字符。
+
+    allow 可传入额外的正则，用于脚本里写死的固定链接等本体可控的标记。
+    """
     stripped = _LINK.sub("", content)
+    stripped = _MENTION.sub("", stripped)
+    for pattern in allow:
+        stripped = re.sub(pattern, "", stripped)
     for char in "[]`~_<>":
         if char in stripped:
             return f"残留未转义字符 {char!r}"

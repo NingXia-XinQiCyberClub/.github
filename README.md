@@ -25,11 +25,14 @@
 | `.github/workflows/feishu-broadcast.yml` | 飞书播报的可复用工作流，供各仓库调用 |
 | `.github/workflows/feishu-events.yml` | 本仓库的播报触发入口 |
 | `.github/workflows/weekly-summary.yml` | 每周一汇总组织动态并播报 |
+| `.github/workflows/welcome-reminder.yml` | 发现飞书群新成员并提醒填写加入工单 |
 | `scripts/feishu/notify.py` | 事件卡片渲染与飞书发送 |
 | `scripts/feishu/summary.py` | 周报统计与卡片生成 |
+| `scripts/feishu/welcome.py` | 群成员对比与新成员提醒 |
 | `scripts/feishu/_selftest.py` | 播报渲染的本地测试，不联网 |
 | `scripts/feishu/_selftest_summary.py` | 周报渲染的本地测试，不联网 |
 | `scripts/feishu/_selftest_send.py` | 签名与地址校验的本地测试，不联网 |
+| `scripts/feishu/_selftest_welcome.py` | 新成员提醒的本地测试，不联网 |
 | `workflow-templates/feishu-events.yml` | 各仓库一键添加播报的模板文件 |
 
 ---
@@ -236,6 +239,7 @@ gh api -X PUT "repos/NingXia-XinQiCyberClub/<仓库>/branches/main/protection" \
 - [ ] 仓库描述与 Topics 已填写
 - [ ] 若启用自动邀请，`.github` 仓库已配置 `ORG_INVITE_TOKEN` 与变量 `AUTO_INVITE`
 - [ ] 若启用飞书播报，已复制 `workflow-templates/feishu-events.yml` 至该仓库 `.github/workflows/`
+- [ ] 若启用新成员提醒，`.github` 仓库已配置 `FEISHU_APP_ID`、`FEISHU_APP_SECRET`、`FEISHU_CHAT_ID_RECRUIT`
 
 ### 6.6 验证接口的局限
 
@@ -455,6 +459,55 @@ Settings → 左侧「Secrets and variables」→「Actions」→「Secrets」�
 
 > 注意：方案 B 无法「托管」在任何第三方服务器上。应用凭证属于你们的企业，App Secret 等同于机器人的钥匙，只能存放于 GitHub Secrets。任何声称能替你托管并代持密钥的做法，都等于把发消息的权限交给了外部。
 
+### 7.3C 新成员提醒
+
+新同学进飞书群后，往往不知道还要去 GitHub 填工单，结果一直看不到仓库。`welcome-reminder.yml` 每 10 分钟检查一次群成员名单，发现新人就在招新群 @ 他，附上工单链接。
+
+**为什么必须用方案 B**：群自定义机器人只能往群里发消息，读不到成员名单，因此这个功能只支持企业自建应用，方案 A 的 webhook 做不到。
+
+**额外需要一步权限**：在 7.3B 第 3 步的权限列表里，除了 `im:message:send_as_bot`，再加一条 `im:chat.members:read`（获取群成员信息）。加完权限必须重新创建版本并发布，否则调用会返回 403。
+
+**工作原理**：
+
+```
+每 10 分钟 ──▶ 拉取招新群成员名单
+                    │
+                    ▼
+        与 feishu-state 分支上的快照对比
+                    │
+        ┌───────────┴───────────┐
+        ▼                       ▼
+   有新增成员                 无变动
+        │                       │
+        ▼                       ▼
+ @ 他们填工单              更新快照后退出
+        │
+        ▼
+   更新快照（发送失败则不更新，下次重试）
+```
+
+快照存在 `feishu-state` 分支的 `feishu-members.json`，不写 main，也不影响页面发布。分支由工作流首次运行时自动创建。
+
+**几个刻意设计**：
+
+1. **首次运行不发提醒**。只把现有成员记下来，避免上线瞬间 @ 全群
+2. **一次最多 @ 20 人**。超过就判定为异常（例如权限变更导致看到别的群），只更新快照不发提醒，并让工作流标红
+3. **发送失败不更新快照**。宁可下次重复检查，也不漏掉一个新人
+4. **退出的人静默移除**，不发任何消息
+5. **只在招新群提醒**。优先用 `FEISHU_CHAT_ID_RECRUIT`，未配置时用 `FEISHU_CHAT_ID`
+
+**开关**：
+
+```bash
+gh variable set WELCOME_REMINDER --body off --repo NingXia-XinQiCyberClub/.github   # 停用
+gh variable set WELCOME_REMINDER --body on  --repo NingXia-XinQiCyberClub/.github   # 启用
+```
+
+未配置应用凭证时，工作流会打印「未配置…跳过新成员提醒」并正常退出，不影响其他播报。
+
+**成本**：每 10 分钟一次，一天 144 次运行。GitHub 公开仓库的 Actions 免费额度不设上限，但如果组织开始按分钟计费，建议改成 `*/30 * * * *` 或每小时一次——新人等半小时才收到提醒，实际并不算慢。
+
+
 ### 7.4 周报
 
 `weekly-summary.yml` 每周一 08:00（北京时间）运行，统计最近 7 天的提交、变更请求与工单，并列出待评审请求与未分类工单。
@@ -480,13 +533,14 @@ gh variable set WEEKLY_DAYS --body 14 --repo NingXia-XinQiCyberClub/.github     
 
 ### 7.5 本地验证
 
-三个测试脚本均不联网，也不读取真实凭据：
+四个测试脚本均不联网，也不读取真实凭据：
 
 ```bash
 cd scripts/feishu
 python _selftest.py           # 事件卡片渲染、转义、合入痕迹过滤、新成员公告
 python _selftest_summary.py   # 周报渲染、空活动与统计失败的区分
 python _selftest_send.py      # 签名算法、地址白名单、错误码处理
+python _selftest_welcome.py   # 新成员对比、首次运行、上限保护、快照分支
 ```
 
 渲染真实事件后如仍需确认，可设置 `DRY_RUN=1` 让脚本只打印 JSON 而不发送。
@@ -498,4 +552,5 @@ python _selftest_send.py      # 签名算法、地址白名单、错误码处理
 3. 提交标题、工单标题等外部输入在写入 `lark_md` 前统一转义，链接只能由脚本自身生成，防止标题中的 Markdown 语法伪造按钮或外链
 4. 新成员公告中的学号做掩码处理，只保留前 4 位与后 3 位；姓名、年级、专业取自申请人自填的工单正文，未经核实
 5. 播报内容不含代码正文、凭据与赛事信息，仅含标题、作者、分支与链接
+6. 新成员提醒只读群成员名单（`im:chat.members:read`），不读取聊天内容；快照仅存 open_id 与昵称，存于 `feishu-state` 分支
 
