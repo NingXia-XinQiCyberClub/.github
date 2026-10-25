@@ -48,6 +48,22 @@ def env(name: str, default: str = "") -> str:
     return value if value else default
 
 
+def parse_webhooks(value: str) -> list[str]:
+    """把一个变量里的多个机器人地址拆开。
+
+    同一批播报要同时进多个群时，这几个地址写在同一个变量里，用逗号、分号或换行分隔。
+    重复地址会被去掉，避免同一个群收到两遍。
+    """
+    items = re.split(r"[,;\s]+", value or "")
+    seen, result = set(), []
+    for item in items:
+        item = item.strip()
+        if item and item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
 def truthy(value: str) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
@@ -568,30 +584,43 @@ def send_app(app_id: str, app_secret: str, chat_id: str, message: dict) -> int:
     return 0
 
 
-def channel_config(channel: str) -> tuple[str, str]:
-    """返回 (webhook, chat_id)。招新群未配置时降级到主群，避免公告丢失。"""
+def channel_config(channel: str) -> tuple[list[str], list[str]]:
+    """返回 (webhook 列表, chat_id 列表)。招新群未配置时降级到主群，避免公告丢失。
+
+    主群可以配置多个机器人地址（逗号或换行分隔），同一份播报会同时进这几个群。
+    """
     if channel == "recruit":
-        webhook = env("FEISHU_WEBHOOK_RECRUIT")
-        chat_id = env("FEISHU_CHAT_ID_RECRUIT")
-        if webhook or chat_id:
-            return webhook, chat_id
+        webhooks = parse_webhooks(env("FEISHU_WEBHOOK_RECRUIT"))
+        chat_ids = parse_webhooks(env("FEISHU_CHAT_ID_RECRUIT"))
+        if webhooks or chat_ids:
+            return webhooks, chat_ids
         print("未配置招新群机器人，改发主群")
-    return env("FEISHU_WEBHOOK"), env("FEISHU_CHAT_ID")
+    return parse_webhooks(env("FEISHU_WEBHOOK")), parse_webhooks(env("FEISHU_CHAT_ID"))
 
 
 def deliver(message: dict, channel: str = "main") -> int:
     """按配置选择投递方式：优先群自定义机器人，其次应用机器人。
 
-    两者都没有配置时静默跳过，不把流水线判为失败。
+    配置了多个机器人时逐个发送，任何一个失败都返回非零，便于在 Actions 里发现。
+    一个都没配置时静默跳过，不把流水线判为失败。
     """
-    webhook, chat_id = channel_config(channel)
-    if webhook:
-        return send(webhook, env("FEISHU_WEBHOOK_SECRET"), message)
+    webhooks, chat_ids = channel_config(channel)
+    if webhooks:
+        secret = env("FEISHU_WEBHOOK_SECRET")
+        codes = [send(url, secret, message) for url in webhooks]
+        if len(webhooks) > 1:
+            done = sum(1 for code in codes if code == 0)
+            print(f"多群播报：成功 {done}/{len(webhooks)}")
+        return 0 if all(code == 0 for code in codes) else 1
 
     app_id = env("FEISHU_APP_ID")
     app_secret = env("FEISHU_APP_SECRET")
-    if app_id and app_secret and chat_id:
-        return send_app(app_id, app_secret, chat_id, message)
+    if app_id and app_secret and chat_ids:
+        codes = [send_app(app_id, app_secret, chat_id, message) for chat_id in chat_ids]
+        if len(chat_ids) > 1:
+            done = sum(1 for code in codes if code == 0)
+            print(f"多群播报：成功 {done}/{len(chat_ids)}")
+        return 0 if all(code == 0 for code in codes) else 1
 
     print("未配置飞书机器人，跳过播报", file=sys.stderr)
     return 0

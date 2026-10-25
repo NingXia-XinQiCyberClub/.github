@@ -171,6 +171,40 @@ def check_app_bot():
     code = notify.deliver(CARD_MESSAGE, "recruit")
     check("招新群缺失时回落主群", code == 0 and calls and calls[0]["url"] == HOOK)
 
+    # 主群配多个机器人时逐个发送
+    calls.clear()
+    notify.os.environ["FEISHU_WEBHOOK"] = f"{HOOK},{HOOK.replace('0000-0000-0000-0000', '1111-1111-1111-1111')}"
+    code = notify.deliver(CARD_MESSAGE, "main")
+    check("多机器人逐个发送", code == 0 and len(calls) == 2, len(calls))
+
+    # 其中一个失败要判定为失败，便于在 Actions 里发现
+    def flaky(req, timeout=0):
+        if "1111-1111" in req.full_url:
+            return FakeResponse(json.dumps({"code": 9499, "msg": "Bad Request"}).encode())
+        return FakeResponse(json.dumps({"code": 0, "msg": "success"}).encode())
+
+    urllib.request.urlopen = flaky
+    check("多机器人部分失败判定为失败", notify.deliver(CARD_MESSAGE, "main") == 1)
+
+    # 应用机器人也可以配多个 chat_id
+    urllib.request.urlopen = router
+    notify.os.environ.clear()
+    notify.os.environ.update(
+        {
+            "FEISHU_APP_ID": "cli_demo",
+            "FEISHU_APP_SECRET": "s3cret",
+            "FEISHU_CHAT_ID": "oc_one,oc_two",
+        }
+    )
+    calls.clear()
+    check("应用机器人多群发送", notify.deliver(CARD_MESSAGE, "main") == 0)
+    sent = [c for c in calls if "receive_id_type" in (c["url"] or "")]
+    check(
+        "应用机器人多群各发一次",
+        [c["body"]["receive_id"] for c in sent] == ["oc_one", "oc_two"],
+        [c["body"]["receive_id"] for c in sent],
+    )
+
     # 企业接口返回错误码
     def denied(req, timeout=0):
         return FakeResponse(json.dumps({"code": 230013, "msg": "Bot has NO availability"}).encode())

@@ -290,6 +290,7 @@ def check_routing():
     notify.send = lambda webhook, secret, message: (captured.append(webhook), 0)[1]
 
     main_hook = "https://open.feishu.cn/open-apis/bot/v2/hook/main"
+    second_hook = "https://open.feishu.cn/open-apis/bot/v2/hook/second"
     recruit_hook = "https://open.feishu.cn/open-apis/bot/v2/hook/recruit"
 
     def run(label, event, expected, extra=None):
@@ -313,6 +314,20 @@ def check_routing():
         if not ok:
             failed += 1
 
+    # 主群可以配多个机器人，同一份播报要全部送到
+    def run_multi(label, value, expected, event="push"):
+        nonlocal failed
+        captured.clear()
+        notify.os.environ.clear()
+        notify.os.environ.update(
+            {"GITHUB_EVENT_NAME": event, "GITHUB_EVENT_PATH": "", "FEISHU_WEBHOOK": value}
+        )
+        code = notify.main()
+        ok = code == 0 and captured == expected
+        print(f"[{'通过' if ok else '失败'}] 多群 {label} → {len(captured)} 个")
+        if not ok:
+            failed += 1
+
     # main 内部通过 load_event 读文件，这里替换为直接返回构造的负载
     notify.load_event = lambda: ROUTING_PAYLOAD
 
@@ -332,6 +347,13 @@ def check_routing():
         main_hook,
         {"FEISHU_SCENE": "invite_result", "INVITE_STATUS": "invited", "FEISHU_WEBHOOK_RECRUIT": ""},
     )
+
+    ROUTING_PAYLOAD.clear()
+    ROUTING_PAYLOAD.update(push_payload(["docs: 变更"]))
+    run_multi("逗号分隔", f"{main_hook},{second_hook}", [main_hook, second_hook])
+    run_multi("换行分隔", f"{main_hook}\n{second_hook}", [main_hook, second_hook])
+    run_multi("重复地址去重", f"{main_hook},{main_hook}", [main_hook])
+    run_multi("带空格", f" {main_hook} , {second_hook} ", [main_hook, second_hook])
 
     captured.clear()
     notify.os.environ.clear()
