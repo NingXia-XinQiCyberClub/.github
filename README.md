@@ -371,10 +371,18 @@ Settings → 左侧「Secrets and variables」→「Actions」→「Secrets」�
 
 | Name 填这个 | Secret 填这个 | 来源 |
 | :-- | :-- | :-- |
-| `FEISHU_WEBHOOK` | 主群 Webhook 地址 | 第一步第 4 项 |
+| `FEISHU_WEBHOOK` | 主群 Webhook 地址，可填多个 | 第一步第 4 项 |
 | `FEISHU_WEBHOOK_SECRET` | 主群机器人密钥 | 第一步第 3 项 |
 | `FEISHU_WEBHOOK_RECRUIT` | 招新群 Webhook 地址 | 第一步第 5 项 |
 | `ORG_STATS_TOKEN` | GitHub 令牌，见下方说明 | GitHub 个人设置 |
+
+**一个变量收多个群**：`FEISHU_WEBHOOK` 里可以写多个 Webhook，用逗号或换行分隔，同一份播报会同时发到每个群：
+
+```
+https://open.feishu.cn/open-apis/bot/v2/hook/主群A,https://open.feishu.cn/open-apis/bot/v2/hook/主群B
+```
+
+重复地址会自动去重；任意一个地址发送失败，整次任务判为失败，Actions 日志里会打印「多群播报：成功 N/M」。多个地址共用同一个 `FEISHU_WEBHOOK_SECRET`，因此各机器人的签名密钥要么都不开、要么设成同一个值。
 
 找不到「自定义机器人」时，跳过本步，改用 7.3B 的方案 B（企业自建应用）。
 
