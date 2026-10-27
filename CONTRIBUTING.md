@@ -14,6 +14,8 @@
 - 外部协作者在获得授权后提交变更
 - 维护者执行评审与合并操作
 
+成员账号对组织仓库只有读权限，任何参与者（包括成员）均通过 fork + 变更请求提交，流程见 4.2 与第 6 节。Owner 拥有仓库写权限，可直接推送分支，但不得绕过评审合入 `main`。
+
 ---
 
 ## 2. 环境准备
@@ -87,14 +89,19 @@ gh auth login
 
 | 操作目的 | 命令 |
 | :-- | :-- |
-| 克隆仓库 | `git clone <地址>` |
+| 克隆仓库 | `git clone <地址>`（成员克隆自己的 fork） |
+| 查看远端 | `git remote -v` |
+| 登记组织仓库为上游 | `git remote add upstream <组织仓库地址>` |
+| 拉取组织仓库更新 | `git fetch upstream` |
 | 查看工作区状态 | `git status` |
 | 同步远程更新 | `git pull` |
 | 创建并切换分支 | `git switch -c <分支名>` |
 | 切换分支 | `git switch <分支名>` |
 | 暂存全部改动 | `git add .` |
 | 提交 | `git commit -m "<提交信息>"` |
-| 推送 | `git push` |
+| 推送 | `git push`（推送至本人 fork） |
+| 快进至上游 | `git merge --ff-only upstream/main` |
+| 同步本人 fork | `git push origin main` |
 | 查看提交历史 | `git log --oneline -10` |
 | 查看未暂存差异 | `git diff` |
 | 撤销未暂存改动 | `git restore <文件>` |
@@ -106,6 +113,7 @@ gh auth login
 | :-- | :-- | :-- |
 | `Please tell me who you are` | 未配置提交身份 | 参见 2.2 |
 | `Permission denied (publickey)` | SSH 密钥未配置或未加载 | 参见 2.3，或改用 GitHub CLI 认证 |
+| `remote: Permission to NingXia-XinQiCyberClub/... denied` / HTTP 403 | 推送目标是组织仓库，而成员账号只有读权限 | 按 4.2 使用 fork，推送到本人 fork |
 | `Updates were rejected` | 远程分支存在本地缺失的提交 | 先执行 `git pull --rebase`，再推送 |
 | `fatal: not a git repository` | 工作目录错误 | 切换至仓库根目录 |
 | `CONFLICT (content)` | 合并冲突 | 参见 3.4 |
@@ -156,13 +164,22 @@ gh auth login
 
 ### 4.2 分支来源
 
-分支应始终基于最新的 `main` 创建：
+组织默认仓库权限为 `read`，成员账号对组织仓库只有读权限，**不能直接推送分支**。全部推送发生在本人 fork 中，分支始终基于组织仓库最新的 `main` 创建：
 
 ```bash
+# 首次：在 GitHub 上 fork 目标仓库，然后克隆自己的 fork
+git clone git@github.com:<本人用户名>/<仓库>.git
+cd <仓库>
+git remote add upstream https://github.com/NingXia-XinQiCyberClub/<仓库>.git
+
+# 每次开工：同步组织仓库后创建分支
+git fetch upstream
 git switch main
-git pull
+git merge --ff-only upstream/main
 git switch -c <分支名>
 ```
+
+`git remote -v` 应显示 `origin` 指向本人 fork、`upstream` 指向组织仓库。变更请求的 base 为组织仓库 `main`，head 为本人 fork 的分支。
 
 ---
 
@@ -202,17 +219,19 @@ chore: 升级 requests 依赖版本
 - 未包含密码、令牌、私钥、真实 flag 或内网地址
 - 未包含无关文件（`.venv/`、`node_modules/`、`__pycache__/`、编辑器配置）
 - 提交信息符合第 5 节要求
-- 已执行 `git pull --rebase origin main` 同步最新代码
+- 已执行 `git fetch upstream && git rebase upstream/main`（或 `git merge --ff-only upstream/main`）同步最新代码
 
 ### 6.2 发起变更请求
 
-推送分支后，于 GitHub 点击 **Compare & pull request**，或访问：
+推送分支到本人 fork 后，于 fork 页面点击 **Compare & pull request**，或访问：
 
 ```
 https://github.com/NingXia-XinQiCyberClub/<仓库名>/compare
 ```
 
-变更请求描述由模板生成，须逐项填写。
+发起前确认 **base** 为组织仓库的 `main`、**head** 为本人 fork 的分支。变更请求描述由模板生成，须逐项填写。
+
+首次来自 fork 的变更请求，仓库的自动化检查需维护者批准后才会运行，属于 GitHub 对首次贡献者的默认策略。
 
 ### 6.3 评审
 
@@ -222,11 +241,13 @@ https://github.com/NingXia-XinQiCyberClub/<仓库名>/compare
 
 ### 6.4 合并
 
-由维护者执行，默认采用 **Squash and merge**。合并后源分支自动删除，本地同步方式：
+由维护者执行，默认采用 **Squash and merge**。合并后源分支自动删除，本人 fork 与本地同步方式：
 
 ```bash
 git switch main
-git pull
+git fetch upstream
+git merge --ff-only upstream/main
+git push origin main
 git branch -d <分支名>
 ```
 

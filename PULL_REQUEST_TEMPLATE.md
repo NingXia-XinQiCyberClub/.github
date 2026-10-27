@@ -31,7 +31,7 @@ Closes #
 - [ ] 未包含密码、令牌、私钥、真实 flag 或内网地址
 - [ ] 未包含无关文件（`.venv/`、`node_modules/`、`__pycache__/`、编辑器配置）
 - [ ] 提交信息符合[提交信息规范](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md#5-提交信息规范)
-- [ ] 分支基于最新 `main` 创建，冲突已处理
+- [ ] 分支基于最新 `upstream/main` 创建（成员从本人 fork 发起），冲突已处理
 - [ ] 涉及界面变更的，已附截图
 
 ## 补充说明
