@@ -289,6 +289,15 @@ gh api orgs/NingXia-XinQiCyberClub/memberships/<用户名>   # state 为 active 
 
 申请人侧以 `https://github.com/orgs/NingXia-XinQiCyberClub/invitation` 为准，邀请邮件可能被校园邮箱或 QQ 邮箱过滤。
 
+回归测试（离线，仅需 Node，无第三方依赖）：
+
+```bash
+node scripts/workflow/_selftest_invite.mjs
+```
+
+脚本从工作流 YAML 中取出 `script` 块，用模拟的 `fetch` / `github` 覆盖 active、pending、不在组织、
+422 角色错误、复核失败等分支，确认「没发出邀请却说已邀请」不会再次出现。
+
 ---
 
 ## 七、飞书播报
