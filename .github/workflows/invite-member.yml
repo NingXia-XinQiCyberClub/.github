@@ -1,6 +1,6 @@
 name: 加入申请自动邀请
 
-# 校验加入社团申请工单，通过后自动向申请人发出组织邀请（direct_member）。
+# 校验加入社团申请工单，通过后自动向申请人发出组织邀请（Member）。
 # 触发：工单开启、编辑、加标签。仅处理带 membership 标签的工单。
 #
 # 依赖 secret：ORG_INVITE_TOKEN
