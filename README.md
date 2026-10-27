@@ -104,7 +104,11 @@ git push -u origin docs/<变更说明>
 
 ### 5.4 成员邀请
 
-加入申请工单通过校验后，由 `invite-member.yml` 自动发出组织邀请，角色固定为 **Member**（`direct_member`），不授予 Owner。
+加入申请工单通过校验后，由 `invite-member.yml` 自动发出组织邀请，角色固定为 **Member**，不授予 Owner。
+
+> 接口细节：邀请调用 `PUT /orgs/{org}/memberships/{username}` 时 `role` 必须传 `member`。
+> 传入 `direct_member`（该值属于「创建邀请」接口）会被拒为 422 `User must have a valid role`，
+> 详见 6.7。
 
 决策依据：自动化只承担可机械判定的部分（学号格式、流程清单、承诺事项），减少维护者的重复操作；角色不随自动化放开，避免权限扩张。
 
@@ -116,6 +120,7 @@ git push -u origin docs/<变更说明>
 4. 新增成员默认只读公开仓库。私有仓库仍须按 5.1 的约束单独授权。
 5. 校验通过仅代表**格式合规**，不代表身份核实。学号与姓名为申请人自填，工单正文公开可见，存在冒填可能；如需收紧，应在 5.1 的规模评估中一并调整。
 6. 邀请发出后向招新群公告新成员，公告口径与隐私处理见 7.2 节。公告失败不回滚邀请，也不阻塞工单关闭。
+7. 邀请成功与否以成员状态（`state=pending`）为准，不以接口状态码为准；复核不通过时按失败上报，不回复「已邀请」、不关闭工单。
 
 开关：仓库变量 `AUTO_INVITE`。**默认开启**，仅当显式设为 `off` 时整条工作流跳过，不打标签、不发评论、不报错。
 
@@ -258,6 +263,32 @@ https://github.com/NingXia-XinQiCyberClub/<仓库>/issues/new/choose
 
 页面应列出各表单选项。若模板刚提交，GitHub 存在短暂缓存，可等待约 1 分钟后重试。
 
+### 6.7 邀请接口的 role 取值
+
+成员邀请走 `PUT /orgs/{org}/memberships/{username}`，`role` 只接受 `member` 与 `admin`。
+`direct_member` 属于「创建邀请」接口（`POST /orgs/{org}/invitations`）的取值，用在 membership
+接口上会返回 422 `User must have a valid role`，与「已有待处理邀请」毫无关系。
+
+2026-10-27 的漏发事故由此而来：工作流把**任意** 422 都当作「邀请已存在」，回复「已有待处理邀请，
+请查收邮箱」并打上 `invited` 标签，申请人实际什么也没收到。至少 4 份申请（#12、#13、#15、#16）
+受影响，经人工重发后才真正入组。
+
+现在的两条硬性约束：
+
+1. `role` 固定传 `member`，不传 `direct_member`；
+2. 任何非 2xx 响应都先复查 `GET /orgs/{org}/memberships/{username}`，只有 `state=pending`
+   才按「邀请已存在」处理，其余情形回显原始响应并按失败上报。邀请成功后同样以 `state=pending`
+   复核，复核不通过则不回复成功、不关闭工单、不公告。
+
+排查入口：组织 Settings → People → Pending invitations，或
+
+```bash
+gh api orgs/NingXia-XinQiCyberClub/invitations --jq '.[] | "\(.login) \(.role) \(.created_at)"'
+gh api orgs/NingXia-XinQiCyberClub/memberships/<用户名>   # state 为 active / pending
+```
+
+申请人侧以 `https://github.com/orgs/NingXia-XinQiCyberClub/invitation` 为准，邀请邮件可能被校园邮箱或 QQ 邮箱过滤。
+
 ---
 
 ## 七、飞书播报
@@ -292,7 +323,7 @@ https://github.com/NingXia-XinQiCyberClub/<仓库>/issues/new/choose
 
 公告卡片包含姓名、GitHub 账号、年级、脱敏学号（形如 `1202＊＊＊＊193`）、学院专业与研究兴趣，末尾注明邀请已发至注册邮箱、7 天内有效、需本人接受。以下情形不公告：
 
-- 邀请接口返回 422，即组织内已有该账号的待接受邀请（属重试，非新成员）
+- 成员状态查询为 `pending`，即组织内已有该账号的待接受邀请（属重试，非新成员）
 - 申请账号已是组织成员，工作流未修改其角色
 - 邀请失败，此时由工单评论与 Actions 失败状态提示维护者
 
