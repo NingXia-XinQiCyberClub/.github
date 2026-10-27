@@ -43,6 +43,10 @@
 | :-- | :-- |
 | [NingXia-XinQiCyberClub.github.io](https://github.com/NingXia-XinQiCyberClub/NingXia-XinQiCyberClub.github.io) | 组织站点，社团介绍与加入流程 |
 | [guide](https://github.com/NingXia-XinQiCyberClub/guide) | 入门教程正文，九章体系化内容 |
+| [ouroboros](https://github.com/NingXia-XinQiCyberClub/ouroboros) | 授权安全测试 IDE 与编译器：目标驱动、证据链、可回放、执行门控 |
+| [nxu-jwgl-auto-login](https://github.com/NingXia-XinQiCyberClub/nxu-jwgl-auto-login) | 教务系统登录流程教学示例（脱敏版） |
+| [offensive-harness](https://github.com/NingXia-XinQiCyberClub/offensive-harness) | 攻防演练统一编排 harness（规划中） |
+| [sec-knowledge-base](https://github.com/NingXia-XinQiCyberClub/sec-knowledge-base) | 开源网络安全知识库 |
 | [.github](https://github.com/NingXia-XinQiCyberClub/.github) | 组织级配置：主页、贡献指南、行为准则、安全政策、工单模板 |
 
 ## 四、组织规范
