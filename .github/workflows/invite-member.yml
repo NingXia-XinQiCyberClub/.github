@@ -8,8 +8,10 @@ name: 加入申请自动邀请
 #   需在仓库 Settings → Secrets and variables → Actions 中配置个人访问令牌：
 #     经典 PAT，勾选 admin:org；或 GitHub App，授予 Organization → Members 读写。
 #
-# 权限说明：本工作流只授予 direct_member（Member），不授予 admin（Owner）。
+# 权限说明：本工作流只授予 Member，不授予 admin（Owner）。
 #   已存在的成员与所有者一律跳过，避免把现有所有者降级为 Member。
+#   注意 role 取值：membership 接口只接受 member / admin，
+#   传 direct_member 会被拒为 422「User must have a valid role」，与「已有邀请」无关。
 #
 # 开关：仓库变量 AUTO_INVITE
 #   默认开启。仅当显式设为 off 时整条工作流跳过，不打标签、不发评论、不报错。
@@ -189,10 +191,16 @@ jobs:
 
             // ---- 成员现状检查（关键：不降级现有成员与所有者）----
 
-            const existing = await orgApi(`/orgs/${ORG}/memberships/${author.login}`);
+            // 接口对「成员」与「待接受邀请」都返回 200，必须按 state 区分：
+            //   active  → 正式成员，跳过，不改角色
+            //   pending → 邀请已发出但未接受，直接告知，不再重复邀请
+            async function closeIssue() {
+              await github.rest.issues.update({
+                owner, repo, issue_number, state: 'closed', state_reason: 'completed',
+              });
+            }
 
-            if (existing.status === 200) {
-              const role = existing.data && existing.data.role;
+            async function commentAlreadyMember(role) {
               await upsertComment([
                 MARKER,
                 '### 已是组织成员',
@@ -205,6 +213,38 @@ jobs:
               core.setOutput('status', 'already_member');
               core.setOutput('role', role || 'member');
               core.info(`已是成员，跳过：${author.login}（${role}）`);
+            }
+
+            async function commentPendingInvite(role) {
+              await upsertComment([
+                MARKER,
+                '### 邀请已存在',
+                '',
+                `\`${author.login}\` 已有待接受的组织邀请（角色 ${role || 'member'}），无需重复发送。`,
+                '',
+                `请访问[邀请页面](https://github.com/orgs/${ORG}/invitation)接受邀请，或查收注册邮箱中的邀请邮件。`,
+                '',
+                '邀请 **7 天后过期**，逾期需在本工单内回复说明，由维护者重新发出。',
+                '',
+                `> 若邀请页面显示「没有待处理邀请」，说明邀请未真正送达。请在本工单内回复，`,
+                '> 由维护者到组织 Settings → People → Pending invitations 核对。',
+              ].join('\n'));
+              await addLabel('invited');
+              await closeIssue();
+              core.setOutput('status', 'pending');
+              core.info(`已存在待处理邀请：${author.login}`);
+            }
+
+            const existing = await orgApi(`/orgs/${ORG}/memberships/${author.login}`);
+
+            if (existing.status === 200) {
+              const state = (existing.data && existing.data.state) || 'active';
+              const role = existing.data && existing.data.role;
+              if (state === 'active') {
+                await commentAlreadyMember(role);
+              } else {
+                await commentPendingInvite(role);
+              }
               return;
             }
 
@@ -249,12 +289,34 @@ jobs:
 
             // ---- 发出邀请 ----
 
+            // role 只能填 member / admin。membership 接口不接受 direct_member，
+            // 传该值会被拒为 422「User must have a valid role」，与「已有邀请」无关。
             const result = await orgApi(`/orgs/${ORG}/memberships/${author.login}`, {
               method: 'PUT',
-              body: JSON.stringify({ role: 'direct_member' }),
+              body: JSON.stringify({ role: 'member' }),
             });
 
             if (result.status === 200 || result.status === 201) {
+              // 复核：以成员状态而非接口状态码为准，避免「回复已邀请、实际没发出」
+              const verify = await orgApi(`/orgs/${ORG}/memberships/${author.login}`);
+              const state = verify.status === 200 ? (verify.data && verify.data.state) : '';
+
+              if (state !== 'pending' && state !== 'active') {
+                await upsertComment([
+                  MARKER,
+                  '### 邀请复核未通过',
+                  '',
+                  '邀请接口返回成功，但随后查询成员状态未看到待接受邀请，不能认定邀请已送达。',
+                  '',
+                  `- 邀请接口：\`${result.status}\``,
+                  `- 状态查询：\`${verify.status}\` / \`${state || 'n/a'}\``,
+                  '',
+                  '请维护者到组织 Settings → People → Pending invitations 核对后手动处理。',
+                ].join('\n'));
+                core.setFailed('邀请复核失败');
+                return;
+              }
+
               await upsertComment([
                 MARKER,
                 '### 已发出组织邀请',
@@ -263,38 +325,34 @@ jobs:
                 '',
                 '请按以下步骤完成：',
                 '',
-                '1. 查收 GitHub 注册邮箱的邀请邮件，或访问',
-                '   [组织主页](https://github.com/' + ORG + ') 接受待处理邀请',
+                `1. 打开[邀请页面](https://github.com/orgs/${ORG}/invitation)直接接受，或查收 GitHub 注册邮箱中的邀请邮件`,
                 '2. 邀请 **7 天后过期**，逾期需在本工单内回复说明，由维护者重新发出',
                 '3. 接受后默认获得公开仓库的 **只读** 权限，私有仓库需单独申请',
                 '',
                 '后续请按[第 0 章](https://github.com/NingXia-XinQiCyberClub/guide/blob/main/00-%E5%8A%A0%E5%85%A5%E7%A4%BE%E5%9B%A2%E6%B5%81%E7%A8%8B.md)完成入门任务。',
                 '',
-                '> 邀请未送达时，先检查邮箱与垃圾邮件目录，再访问组织页面确认是否存在待处理邀请。',
+                '> 邀请邮件可能被校园邮箱或 QQ 邮箱过滤，**以邀请页面为准**；页面无邀请时在本工单回复，由维护者核查。',
               ].join('\n'));
               await addLabel('invited');
-              await github.rest.issues.update({
-                owner, repo, issue_number, state: 'closed', state_reason: 'completed',
-              });
+              await closeIssue();
               core.setOutput('status', 'invited');
               core.setOutput('role', 'Member');
               core.info(`已邀请：${author.login}`);
               return;
             }
 
-            if (result.status === 422) {
-              // 422 通常表示已有待处理邀请，属正常状态
-              await upsertComment([
-                MARKER,
-                '### 邀请已存在',
-                '',
-                `\`${author.login}\` 已有待处理的组织邀请，无需重复发送。`,
-                '',
-                '请查收注册邮箱，或访问组织页面接受邀请。邀请 7 天后过期。',
-              ].join('\n'));
-              await addLabel('invited');
-              core.setOutput('status', 'pending');
-              core.info(`已存在待处理邀请：${author.login}`);
+            // 失败时先复核真实状态：只有确实存在待接受邀请才按「邀请已存在」处理，
+            // 其余状态码（含 role 取值错误导致的 422）一律回显原始响应并按失败上报。
+            const recheck = await orgApi(`/orgs/${ORG}/memberships/${author.login}`);
+            const recheckState = recheck.status === 200 ? (recheck.data && recheck.data.state) : '';
+
+            if (recheckState === 'pending') {
+              await commentPendingInvite(recheck.data && recheck.data.role);
+              return;
+            }
+
+            if (recheckState === 'active') {
+              await commentAlreadyMember(recheck.data && recheck.data.role);
               return;
             }
 
