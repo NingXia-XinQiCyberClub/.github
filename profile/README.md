@@ -31,8 +31,8 @@
    见 [guide 仓库](https://github.com/NingXia-XinQiCyberClub/guide)，共八章，涵盖基础环境、实验环境、协作流程、代码规范与竞赛入门。
    规范性文件为 [CONTRIBUTING.md](https://github.com/NingXia-XinQiCyberClub/.github/blob/main/CONTRIBUTING.md)。
 
-2. **提交加入申请**
-   通过[加入社团申请](https://github.com/NingXia-XinQiCyberClub/.github/issues/new?template=join.yml)创建工单，填写基本信息并勾选流程清单，逐项完成后即完成加入流程。
+2. **申请加入**
+   仅通过飞书或直接联系组织负责人申请，具体渠道见下方「五、成员招募」。审核通过后，按负责人指引接受 GitHub 组织邀请。
 
 3. **承接入门任务**
    检索 `good first issue` 标签，完成首次变更请求。该标签同时会聚合至各仓库的 `/contribute` 页面。
@@ -60,7 +60,18 @@
 
 ## 五、成员招募
 
-招募对象为宁夏大学在校学生。有意加入者可通过 Discussions 提交申请，或直接联系组织负责人。
+招募对象为宁夏大学在校学生。成员招募仅通过以下两种方式进行：
+
+1. **飞书申请**：通过下方「六、飞书团队」的邀请二维码提交申请，由管理员审核。
+2. **直接联系组织负责人**：通过以下联系方式咨询并申请加入。
+
+| 联系方式 | 账号或地址 |
+| :-- | :-- |
+| GitHub | [@Megalomanian](https://github.com/Megalomanian) |
+| 微信 | `VioLina_zll` |
+| 邮箱 | [violina2333@gmail.com](mailto:violina2333@gmail.com) |
+
+申请时请说明姓名、年级、专业与感兴趣的技术方向。请勿在公开的 Discussions 或 Issue 中提交入社申请或个人联系方式。
 
 准入标准以参与意愿与执行能力为主要依据，不设技术水平门槛。
 
@@ -73,6 +84,8 @@
 <img src="https://ningxia-xinqicyberclub.github.io/assets/img/feishu-qr.png" width="220" alt="飞书团队邀请二维码">
 
 有效期至 2026 年 11 月 21 日 00:00 · 仅限 +86 手机号注册的账号 · 团队名称：宁夏大学鑫启网安俱乐部
+
+当前二维码已超过标注有效期。如无法申请，请通过上方联系方式联系负责人获取新的飞书邀请，或直接申请加入。
 
 </div>
 
